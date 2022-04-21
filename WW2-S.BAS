@@ -249,9 +249,9 @@ pcode = 0
 CALL victor
 ON ERROR GOTO 0
 IF pcode > 0 GOTO newg
-'±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+
 '                              Main Menu
-'±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+
 menu0:
 CALL statusbar
 f3key = 1
@@ -385,7 +385,7 @@ hitek:
 	FOR k = 1 TO 8: mtx$(k) = tname$(k) + tek$(teklev(side, k)): NEXT k
 	a$ = "NO": IF teklev(side, 6) = 1 THEN a$ = "YES"
 	mtx$(6) = "Amphib  " + a$
-	IF teklev(side, 6) = 2 THEN mtx$(6) = "Invasion û"
+	IF teklev(side, 6) = 2 THEN mtx$(6) = "Invasion ï¿½"
 	size = 8: chosit = 26
 	TICK .2
 	CALL menu(6)
@@ -611,13 +611,13 @@ utile:
 	mtx$(5) = "Balance " + STR$(difficult - 3)
 	mtx$(6) = "End Cond"
 	mtx$(7) = "Vary Start"
-	mtx$(8) = "Neutrals": IF neuter = 1 THEN mtx$(8) = mtx$(8) + " û"
+	mtx$(8) = "Neutrals": IF neuter = 1 THEN mtx$(8) = mtx$(8) + " ï¿½"
 	mtx$(9) = "Keyboard": IF Mighty > 0 THEN mtx$(9) = "Mouse"
-	mtx$(10) = "Weather ": IF weather > 0 THEN mtx$(10) = mtx$(10) + " û"
+	mtx$(10) = "Weather ": IF weather > 0 THEN mtx$(10) = mtx$(10) + " ï¿½"
 	mtx$(11) = "Hi Scores"
-	mtx$(12) = "Begin PBM": IF pbm > 0 THEN mtx$(12) = mtx$(12) + " û"
+	mtx$(12) = "Begin PBM": IF pbm > 0 THEN mtx$(12) = mtx$(12) + " ï¿½"
 	mtx$(13) = "PBM Drv " + pb$
-	mtx$(14) = "Autosave": IF autosave > 0 THEN mtx$(14) = mtx$(14) + " û"
+	mtx$(14) = "Autosave": IF autosave > 0 THEN mtx$(14) = mtx$(14) + " ï¿½"
 	mtx$(15) = "Save Config"
 	colour = 5: hilite = 15
 	size = 15: tlx = 67: tly = 8
