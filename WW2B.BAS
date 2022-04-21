@@ -57,7 +57,6 @@ LOOP WHILE y%
 END SUB
 
 SUB burn
-SHELL "ww2city.exe"
 SCREEN 12
 CLS : CALL europe(0)
 END SUB
@@ -203,7 +202,7 @@ SUB endit
 	CALL clrbot: PRINT "Press ENTER to toggle ending conditions";
 	COLOR 14: PRINT "				ESC when done";
 what4:
-	FOR i = 2 TO 4: IF vicflag(i) > 0 THEN mtx$(i - 1) = "û " ELSE mtx$(i - 1) = "  "
+	FOR i = 2 TO 4: IF vicflag(i) > 0 THEN mtx$(i - 1) = "ï¿½ " ELSE mtx$(i - 1) = "  "
 	NEXT i
 	choose = chosit
 	mtx$(0) = "Victory Conditions"
@@ -636,9 +635,9 @@ END SUB
 
 SUB maxx (flag)
 CLS : LINE (0, 0)-(639, 449), 8, BF
-COLOR 14: LOCATE 2, 7: PRINT STRING$(61, "²")
-LOCATE 9, 7: PRINT STRING$(61, "²")
-FOR i = 1 TO 6: LOCATE 2 + i, 7: PRINT "²"; SPACE$(59); "²": NEXT i
+COLOR 14: LOCATE 2, 7: PRINT STRING$(61, "ï¿½")
+LOCATE 9, 7: PRINT STRING$(61, "ï¿½")
+FOR i = 1 TO 6: LOCATE 2 + i, 7: PRINT "ï¿½"; SPACE$(59); "ï¿½": NEXT i
 COLOR 13: LOCATE 1, 28: PRINT begin$; "  SCENARIO"
 		COLOR 9
 		IF LEN(DIR$("hi" + begin$ + ".ww2")) = 0 THEN
@@ -1119,7 +1118,6 @@ DO WHILE TIMER - start! < sec! AND INKEY$ = "": LOOP
 END SUB
 
 SUB title2
-SHELL "ww2title.exe"
 SCREEN 12
 LINE (1, 1)-(630, 480), 8, BF
 END SUB
