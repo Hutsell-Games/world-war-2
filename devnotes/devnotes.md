@@ -1,4 +1,4 @@
-1. Whitespace reformatting of `WW2B.BAS` to allow code folding.
+1. Whitespace reformatting of `WW2B.BAS`, `WW2C.BAS` to allow code folding.
 1. Remove extended ASCII characters from some code comments
 1. Remove `WW2.OBJ`, `WW2B.OBJ`, `WW2C.OBJ`
 1. Remove `WW2TITLE.EXE`, `WW2CITY.EXE`
