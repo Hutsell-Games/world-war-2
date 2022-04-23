@@ -1,21 +1,13 @@
-DEFINT A-Z
 DECLARE SUB battleship ()
-DECLARE SUB boxes (y%)
-DECLARE SUB canimove (index%, flag%)
 DECLARE SUB center (y%, a$)
 DECLARE SUB choices (wide%)
-DECLARE SUB citygraf (index%, flag%)
 DECLARE SUB deadplane (who%)
-DECLARE SUB gcirc (xc%, flag%)
-DECLARE SUB ikhan (index%)
 DECLARE SUB maptext ()
 DECLARE SUB Mickey (a$, lButton%, rButton%, xc%, yc%)
 DECLARE SUB MouseBorder (row1%, col1%, row2%, col2%)
 DECLARE SUB mxw (wide%)
-DECLARE SUB showmove (who%)
 DECLARE SUB showtek (who%, k%)
-DECLARE SUB submarine (flag%)
-' $INCLUDE: 'ww2.bi'
+
 '============================================================================
 '                GENmenu 3.05 : Generic Menu Main Module Level  12/91
 '                Updated to Use Graphic Screens 8, 9, 12
