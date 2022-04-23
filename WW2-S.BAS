@@ -1,27 +1,3 @@
-DEFINT A-Z
-DECLARE SUB airforce (who%, chx%)
-DECLARE SUB boxes (y%)
-DECLARE SUB canimove (index%, flag%)
-DECLARE SUB citygraf (index%, flag%)
-DECLARE SUB detach (who%, index%, target%)
-DECLARE SUB gcirc (xc%, flag%)
-DECLARE SUB homeguard (who%, target%)
-DECLARE SUB ikhan (index%)
-DECLARE SUB normal (xbar%, vary%, x%)
-DECLARE SUB paratroop (who%)
-DECLARE SUB pbmview ()
-DECLARE SUB retreat (active%, x%)
-DECLARE SUB rotate (who%)
-DECLARE SUB showmove (who%)
-DECLARE SUB submarine (flag%)
-DECLARE SUB title2 ()
-REM $INCLUDE: 'ww2.bi'
-DIM SHARED usai(80), uki(80), fri(80), poli(80), rusi(80), geri(80), alship(100)
-DIM SHARED para(60), axship(100), drop(140), ike1(80), ike2(80), ike3(80), ike4(80)
-DIM SHARED parasw
-sblast$ = ""
-pb$ = CURDIR$
-
 SCREEN 12
 s = 1
 DEF SEG = VARSEG(graphic(1))
