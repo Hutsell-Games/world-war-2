@@ -82,83 +82,7 @@ DECLARE SUB trooper (who%, flag%)
 DECLARE SUB tupdate ()
 DECLARE SUB victor ()
 DECLARE SUB void (a%, y%)
-' ===========================================================================
-'
-' MOUSE.BI
-'
-'  Copyright (C) 1989 Microsoft Corporation, All Rights Reserved
-'
-' ===========================================================================
-
-' ===========================================================================
-' DECLARATIONS
-' ===========================================================================
-
-DECLARE SUB MouseHide ()
-DECLARE SUB MouseShow ()
-DECLARE SUB MousePoll (row%, col%, lButton%, rButton%)
-DECLARE SUB MouseBorder (row1%, col1%, row2%, col2%)
-DECLARE SUB MouseDriver (m0%, m1%, m2%, m3%)
-DECLARE SUB MouseInit ()
-
-COMMON SHARED MousePresent AS INTEGER
-
-' ===========================================================================
-'
-' GENERAL.BI
-'
-'  Copyright (C) 1989 Microsoft Corporation, All Rights Reserved
-'
-' ===========================================================================
-
-' ===========================================================================
-' RegType contains the register structure for performing BIOS calls using
-' CALL INTERRUPT
-' ===========================================================================
-
-TYPE RegType              'for CALL INTERRUPT
-     ax    AS INTEGER
-     bx    AS INTEGER
-     cx    AS INTEGER
-     dx    AS INTEGER
-     bp    AS INTEGER
-     si    AS INTEGER
-     di    AS INTEGER
-     flags AS INTEGER
-END TYPE
-
-' ===========================================================================
-' GLOBAL CONSTANTS
-' ===========================================================================
-
-CONST FALSE = 0
-CONST TRUE = -1
-CONST MINROW = 2
-CONST MAXROW = 25
-CONST MINCOL = 1
-CONST MAXCOL = 80
-CONST MAXMENU = 10
-CONST MAXITEM = 20
-CONST MAXWINDOW = 10
-CONST MAXBUTTON = 50
-CONST MAXEDITFIELD = 20
-CONST MAXHOTSPOT = 20
-
-' ===========================================================================
-' DECLARATIONS
-' ===========================================================================
-
-DECLARE SUB Interrupt (intnum AS INTEGER, inregs AS RegType, outregs AS RegType)
-DECLARE SUB GetCopyBox (row1%, col1%, row2%, col2%, buffer$)
-DECLARE SUB PutCopyBox (row%, col%, buffer$)
-DECLARE SUB AttrBox (row1%, col1%, row2%, col2%, attr%)
-DECLARE SUB PutBackground (row%, col%, buffer$)
-DECLARE SUB GetBackground (row1%, col1%, row2%, col2%, buffer$)
-DECLARE SUB Box (row1%, col1%, row2%, col2%, fore%, back%, border$, fillFlag%)
-DECLARE SUB Scroll (row1%, col1%, row2%, col2%, lines%, attr%)
-DECLARE FUNCTION GetShiftState% (bit%)
-DECLARE FUNCTION AltToASCII$ (kbd$)
-
+REM $INCLUDE: 'ww2.bi'
 '==========================================================================
 COMMON SHARED choose%, tlx%, tly%, size%, mtx$(), colour%, hilite%
 COMMON SHARED cityx(), cityy(), cityv(), cityp(), city$(), filel, country$()
@@ -258,7 +182,7 @@ mtx$(3) = "Continue PBM Game"
 mtx$(4) = "Quit"
 tlx = 2: tly = 14: colour = 4: size = 4
 choose = 22: f3key = 0
-IF _FILEEXISTS("pbm") = 0 THEN mtx$(3) = "-" ELSE choose = 24
+IF LEN(DIR$("pbm")) = 0 THEN mtx$(3) = "-" ELSE choose = 24
 CALL menu(11)
 SELECT CASE choose
 	CASE IS < 0
@@ -1025,14 +949,14 @@ sacf:
 	size = 0
 	FOR k = 1 TO 10
 	t$ = "ww" + LTRIM$(STR$(1938 + k)) + ".sav"
-	IF _FILEEXISTS(t$) THEN size = size + 1: EXIT FOR
+	IF LEN(DIR$(t$)) > 0 THEN size = size + 1: EXIT FOR
 	NEXT k
 filex:
 	ON ERROR GOTO 0
 	choose = 24: chosit = 32: IF filel = 0 THEN choose = 22
 	mtx$(0) = "Options"
 	mtx$(1) = "New Game"
-	mtx$(2) = "Load": IF _FILEEXISTS("*.sav") = 0 THEN mtx$(2) = "-"
+	mtx$(2) = "Load": IF LEN(DIR$("*.sav")) = 0 THEN mtx$(2) = "-"
 	mtx$(3) = "Save": IF filel = 0 THEN mtx$(3) = "-": choose = 22
 	mtx$(4) = "Quit"
 	size = 4: tlx = 67: tly = 15
@@ -1103,7 +1027,7 @@ email:
 	CALL clrbot: PRINT "Updating PBM file...";
 	OPEN "O", 1, pb$ + "pbm"
 	k = 0
-	IF _FILEEXISTS("pbm.&&&") THEN
+	IF LEN(DIR$("pbm.&&&")) > 0 THEN
 		OPEN "I", 2, "pbm.&&&"
 		DO WHILE NOT EOF(2) AND k < 21
 			INPUT #2, a$
@@ -1390,7 +1314,7 @@ SUB battle (attack, defend, win, lose)
 	CALL image2(force$(s) + " forces attack " + city$(armyloc(defend)), c)
 
 	t$ = "fort" + LTRIM$(STR$(z)) + ".vga"
-	IF _FILEEXISTS(t$) THEN
+	IF LEN(DIR$(t$)) > 0 THEN
 		DEF SEG = VARSEG(graphic(1))
 		BLOAD t$, VARPTR(graphic(1))
 		DEF SEG
@@ -3742,7 +3666,7 @@ SUB europe (flag)
 		PAINT (250, 350), 3, 10
 	END IF
 	'.................................mountains.................................
-	IF _FILEEXISTS("m.vga") THEN
+	IF LEN(DIR$("m.vga")) > 0 THEN
 	DEF SEG = VARSEG(graphic(1))
 	BLOAD "m.vga", VARPTR(graphic(1))
 	DEF SEG
@@ -4089,7 +4013,7 @@ SUB menu (switch%)
 				LINE (548, 148)-(592, 216), 15, B
 				a = row: IF side = 1 THEN a = 6 - row
 				t$ = "face" + LTRIM$(STR$(a)) + ".vga"
-				IF _FILEEXISTS(t$) THEN
+				IF LEN(DIR$(t$)) > 0 THEN
 					DEF SEG = VARSEG(graphic(1))
 					BLOAD t$, VARPTR(graphic(1))
 					DEF SEG
@@ -4356,7 +4280,7 @@ SUB menu (switch%)
 						file$ = "help.sc1"
 					END SELECT
 					IF file$ = "" THEN RETURN
-					IF _FILEEXISTS(file$) = 0 THEN RETURN
+					IF LEN(DIR$(file$)) = 0 THEN RETURN
 					SCREEN 0
 					DEF SEG = &HB800
 					BLOAD file$, 0
@@ -5329,7 +5253,7 @@ SUB events
 		TICK -2
 		EXIT SUB
 	END IF
-	IF _FILEEXISTS(t$) = 0 THEN EXIT SUB
+	IF LEN(DIR$(t$)) = 0 THEN EXIT SUB
 	OPEN "I", 1, t$
 	'       x=trigger date  y=side affected (1-2)
 	'       z=event code:   1=victory  2=cash  3=ships  4=airforce
@@ -5404,7 +5328,7 @@ SUB filer (switch)
 		CASE 1, 4
 	redo:
 		mtx$(0) = "Start Year"
-		' t$ = _FILEEXISTS("euro*.dat")
+		t$ = DIR$("euro*.dat")
 		colour = 3
 		GOSUB getyr
 
@@ -5414,7 +5338,7 @@ SUB filer (switch)
 		GOSUB wbase
 		PRINT "..";
 		t$ = "ww" + begin$ + ".ini"
-		IF _FILEEXISTS(t$) = 0 THEN CALL clrbot: COLOR 14: LOCATE 29, 1: PRINT "INITILIZATION FILE NOT FOUND :"; t$; : begin$ = "": TICK 5: CALL clrbot: EXIT SUB
+		IF LEN(DIR$(t$)) < 1 THEN CALL clrbot: COLOR 14: LOCATE 29, 1: PRINT "INITILIZATION FILE NOT FOUND :"; t$; : begin$ = "": TICK 5: CALL clrbot: EXIT SUB
 		OPEN "I", 1, t$
 		INPUT #1, scenario$
 		INPUT #1, mnth, yr
@@ -5463,7 +5387,7 @@ SUB filer (switch)
 		IF begin$ <> "1939" THEN begin$ = "1940"
 
 		GOSUB wbase
-		IF _FILEEXISTS(t$) = 0 THEN CALL clrbot: COLOR 14: LOCATE 29, 1: PRINT "FILE NOT FOUND :"; t$; : begin$ = "": TICK 5: CALL clrbot: EXIT SUB
+		IF LEN(DIR$(t$)) < 1 THEN CALL clrbot: COLOR 14: LOCATE 29, 1: PRINT "FILE NOT FOUND :"; t$; : begin$ = "": TICK 5: CALL clrbot: EXIT SUB
 
 		OPEN "I", 1, file$
 		INPUT #1, scenario$, begin$, a$
@@ -5555,7 +5479,7 @@ SUB filer (switch)
 	'...........................................map.............................
 	' 1=US 2=German 3=UK 4=French 5=Polish 6=Russian 7=Italian 8=Generic Allied
 	' 7th position : shows location of matching text. If > 95 then IS invasion port
-		t$ = "euro1940.dat": IF begin$ = "1939" OR _FILEEXISTS(t$) = 0 THEN t$ = "euro1939.dat"
+		t$ = "euro1940.dat": IF begin$ = "1939" OR LEN(DIR$(t$)) = 0 THEN t$ = "euro1939.dat"
 		flag = 0
 	refile:
 		PRINT "...";
@@ -5606,7 +5530,7 @@ SUB filer (switch)
 		FOR k = 1 TO size
 		mtx$(k) = STR$(k) + " unused"
 		t$ = "wwii" + LTRIM$(STR$(k)) + ".sav"
-		IF _FILEEXISTS(t$) THEN
+		IF LEN(DIR$(t$)) > 0 THEN
 			OPEN "I", 1, t$
 			t$ = ""
 			INPUT #1, a$, mtx$(21), mtx$(0)
@@ -5724,7 +5648,7 @@ SUB maxx (flag)
 	FOR i = 1 TO 6: LOCATE 2 + i, 7: PRINT "�"; SPACE$(59); "�": NEXT i
 	COLOR 13: LOCATE 1, 28: PRINT begin$; "  SCENARIO"
 			COLOR 9
-			IF _FILEEXISTS("hi" + begin$ + ".ww2") = 0 THEN
+			IF LEN(DIR$("hi" + begin$ + ".ww2")) = 0 THEN
 				OPEN "O", 1, "hi" + begin$ + ".ww2"
 				FOR k = 1 TO 10
 				WRITE #1, "", 0
@@ -6060,8 +5984,8 @@ SUB showtek (who, k)
 END SUB
 
 SUB sndblst (file$, flag%)
-	' ON LOCAL ERROR GOTO nosound
-	IF _FILEEXISTS(file$) = 0 THEN EXIT SUB
+	ON LOCAL ERROR GOTO nosound
+	IF LEN(DIR$(file$)) = 0 THEN EXIT SUB
 	IF sblast$ = "" OR noise = 0 THEN EXIT SUB
 	IF sblast$ = "Z" THEN SHELL "sound " + file$ + " 5 1 8": EXIT SUB
 	SHELL "plany.exe " + file$ + plany$
@@ -6343,5 +6267,3 @@ SUB void (a, y)
 		NEXT k
 	NEXT j
 END SUB
-
-'$INCLUDE: 'MICKEY.BAS'
