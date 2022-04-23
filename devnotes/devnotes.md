@@ -1,3 +1,5 @@
+1. Basic replacement of `DIR$` with QB64 `_FILEEXISTS`, will require more refactoring to fully work.
+    - Goal here is simply to get the code "running", then to go back and ensure all file loading/saving works correctly.
 1. Remove `WW2.TXT`, essentially equivalent to `WW2.DOC`
 1. Merge `WW2.BI` into `WW2.BAS`
 1. Merge `WW2B.BAS` into `WW2.BAS`
