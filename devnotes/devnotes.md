@@ -1,3 +1,4 @@
+1. Merge `WW2.BI` into `WW2.BAS`
 1. Merge `WW2B.BAS` into `WW2.BAS`
 1. Remove WW2 Shareware related files `WW2-S.BAS` and `WW2-S.LNK`
 1. Merge `WW2C.BAS` into `WW2.BAS`
