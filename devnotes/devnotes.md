@@ -1,3 +1,4 @@
+1. Convert all `DIR$` to `_FILEEXISTS` equivalents, except one.
 1. Remove `WW2.TXT`, essentially equivalent to `WW2.DOC`
 1. Merge `WW2.BI` into `WW2.BAS`
 1. Merge `WW2B.BAS` into `WW2.BAS`
