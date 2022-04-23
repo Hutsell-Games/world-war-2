@@ -1,3 +1,4 @@
+1. Remove WW2 Shareware related files `WW2-S.BAS` and `WW2-S.LNK`
 1. Merge `WW2C.BAS` into `WW2.BAS`
 1. Remove code duplicated between `WW2-S.BAS` and `WW2.BAS`
 1. Whitespace reformatting of `WW2B.BAS`, `WW2C.BAS`, `WW2.BAS`, `EDIT.BAS` to allow code folding.

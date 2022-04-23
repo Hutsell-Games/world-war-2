@@ -1,15 +1,3 @@
-DEFINT A-Z
-DECLARE SUB center (y%, a$)
-DECLARE SUB citygraf (index%, flag%)
-DECLARE SUB deadplane (who%)
-DECLARE SUB gcirc (xc%, flag%)
-DECLARE SUB ikhan (index%)
-DECLARE SUB maptext ()
-DECLARE SUB Mickey (a$, lButton%, rButton%, xc%, yc%)
-DECLARE SUB pbmview ()
-DECLARE SUB showmove (who%)
-DECLARE SUB title2 ()
-' $INCLUDE: 'ww2.bi'
 DIM SHARED yourname$(10), skorz&(2, 5)
 
 SUB airdist (who, target, d)
