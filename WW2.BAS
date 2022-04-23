@@ -82,6 +82,83 @@ DECLARE SUB trooper (who%, flag%)
 DECLARE SUB tupdate ()
 DECLARE SUB victor ()
 DECLARE SUB void (a%, y%)
+' ===========================================================================
+'
+' MOUSE.BI
+'
+'  Copyright (C) 1989 Microsoft Corporation, All Rights Reserved
+'
+' ===========================================================================
+
+' ===========================================================================
+' DECLARATIONS
+' ===========================================================================
+
+DECLARE SUB MouseHide ()
+DECLARE SUB MouseShow ()
+DECLARE SUB MousePoll (row%, col%, lButton%, rButton%)
+DECLARE SUB MouseBorder (row1%, col1%, row2%, col2%)
+DECLARE SUB MouseDriver (m0%, m1%, m2%, m3%)
+DECLARE SUB MouseInit ()
+
+COMMON SHARED MousePresent AS INTEGER
+
+' ===========================================================================
+'
+' GENERAL.BI
+'
+'  Copyright (C) 1989 Microsoft Corporation, All Rights Reserved
+'
+' ===========================================================================
+
+' ===========================================================================
+' RegType contains the register structure for performing BIOS calls using
+' CALL INTERRUPT
+' ===========================================================================
+
+TYPE RegType              'for CALL INTERRUPT
+     ax    AS INTEGER
+     bx    AS INTEGER
+     cx    AS INTEGER
+     dx    AS INTEGER
+     bp    AS INTEGER
+     si    AS INTEGER
+     di    AS INTEGER
+     flags AS INTEGER
+END TYPE
+
+' ===========================================================================
+' GLOBAL CONSTANTS
+' ===========================================================================
+
+CONST FALSE = 0
+CONST TRUE = -1
+CONST MINROW = 2
+CONST MAXROW = 25
+CONST MINCOL = 1
+CONST MAXCOL = 80
+CONST MAXMENU = 10
+CONST MAXITEM = 20
+CONST MAXWINDOW = 10
+CONST MAXBUTTON = 50
+CONST MAXEDITFIELD = 20
+CONST MAXHOTSPOT = 20
+
+' ===========================================================================
+' DECLARATIONS
+' ===========================================================================
+
+DECLARE SUB Interrupt (intnum AS INTEGER, inregs AS RegType, outregs AS RegType)
+DECLARE SUB GetCopyBox (row1%, col1%, row2%, col2%, buffer$)
+DECLARE SUB PutCopyBox (row%, col%, buffer$)
+DECLARE SUB AttrBox (row1%, col1%, row2%, col2%, attr%)
+DECLARE SUB PutBackground (row%, col%, buffer$)
+DECLARE SUB GetBackground (row1%, col1%, row2%, col2%, buffer$)
+DECLARE SUB Box (row1%, col1%, row2%, col2%, fore%, back%, border$, fillFlag%)
+DECLARE SUB Scroll (row1%, col1%, row2%, col2%, lines%, attr%)
+DECLARE FUNCTION GetShiftState% (bit%)
+DECLARE FUNCTION AltToASCII$ (kbd$)
+
 '==========================================================================
 COMMON SHARED choose%, tlx%, tly%, size%, mtx$(), colour%, hilite%
 COMMON SHARED cityx(), cityy(), cityv(), cityp(), city$(), filel, country$()
@@ -5327,7 +5404,7 @@ SUB filer (switch)
 		CASE 1, 4
 	redo:
 		mtx$(0) = "Start Year"
-		t$ = _FILEEXISTS("euro*.dat")
+		' t$ = _FILEEXISTS("euro*.dat")
 		colour = 3
 		GOSUB getyr
 
@@ -5386,7 +5463,7 @@ SUB filer (switch)
 		IF begin$ <> "1939" THEN begin$ = "1940"
 
 		GOSUB wbase
-		IF _FILEEXISTS = 0 THEN CALL clrbot: COLOR 14: LOCATE 29, 1: PRINT "FILE NOT FOUND :"; t$; : begin$ = "": TICK 5: CALL clrbot: EXIT SUB
+		IF _FILEEXISTS(t$) = 0 THEN CALL clrbot: COLOR 14: LOCATE 29, 1: PRINT "FILE NOT FOUND :"; t$; : begin$ = "": TICK 5: CALL clrbot: EXIT SUB
 
 		OPEN "I", 1, file$
 		INPUT #1, scenario$, begin$, a$
@@ -5983,7 +6060,7 @@ SUB showtek (who, k)
 END SUB
 
 SUB sndblst (file$, flag%)
-	ON LOCAL ERROR GOTO nosound
+	' ON LOCAL ERROR GOTO nosound
 	IF _FILEEXISTS(file$) = 0 THEN EXIT SUB
 	IF sblast$ = "" OR noise = 0 THEN EXIT SUB
 	IF sblast$ = "Z" THEN SHELL "sound " + file$ + " 5 1 8": EXIT SUB
@@ -6267,3 +6344,4 @@ SUB void (a, y)
 	NEXT j
 END SUB
 
+'$INCLUDE: 'MICKEY.BAS'

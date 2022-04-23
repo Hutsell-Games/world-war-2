@@ -22,8 +22,6 @@ DECLARE SUB TICK (sec!)
 '============================================================================
 
 DEFINT A-Z
-'$INCLUDE: 'general.bi'
-'$INCLUDE: 'mouse.bi'
 
 SUB Mickey (a$, lButton, rButton, xc, yc)
         CALL MouseBorder(1, 1, 444, 632)
