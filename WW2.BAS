@@ -5415,9 +5415,11 @@ SUB filer (switch)
 		CASE 1, 4
 	redo:
 		mtx$(0) = "Start Year"
-		t$ = DIR$("euro*.dat")
-		colour = 3
-		GOSUB getyr
+		FOR j = 1939 TO 1960
+			t$ = "euro" + STR$(j) + ".dat"
+			colour = 3
+			GOSUB getyr
+		NEXT j
 
 		CALL clrbot
 		LOCATE 29, 1: PRINT "Loading "; begin$;
