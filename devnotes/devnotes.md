@@ -1,3 +1,7 @@
+1. Moved some code relating to using the mouse around due to changes in QB64 not supporting the initial configuration.
+    - The files `GENERAL.BI` and `MOUSE.BI` were placed towards the beginning of `WW2.BAS`
+    - The `$INCLUDE` statements were removed from `MICKEY.BAS`
+    - An `$INCLUDE` for `MICKEY.BAS` was added to the end of `WW2.BAS`
 1. Convert all `DIR$` to `_FILEEXISTS` equivalents, except one.
 1. Remove `WW2.TXT`, essentially equivalent to `WW2.DOC`
 1. Merge `WW2.BI` into `WW2.BAS`
