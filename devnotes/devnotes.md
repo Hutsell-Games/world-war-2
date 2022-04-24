@@ -1,3 +1,4 @@
+1. Commented out `ON LOCAL ERROR GOTO nosound` as it is throwing an error in QB64.
 1. QB64 doesn't support the `DIR$` statement from PDS 7.1, use a `FOR...NEXT` loop to handle listing `euro*.dat` files instead.
 1. Moved some code relating to using the mouse around due to changes in QB64 not supporting the initial configuration.
     - The files `GENERAL.BI` and `MOUSE.BI` were placed towards the beginning of `WW2.BAS`

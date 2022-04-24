@@ -6073,7 +6073,7 @@ SUB showtek (who, k)
 END SUB
 
 SUB sndblst (file$, flag%)
-	ON LOCAL ERROR GOTO nosound
+	' ON LOCAL ERROR GOTO nosound
 	IF _FILEEXISTS(file$) = 0 THEN EXIT SUB
 	IF sblast$ = "" OR noise = 0 THEN EXIT SUB
 	IF sblast$ = "Z" THEN SHELL "sound " + file$ + " 5 1 8": EXIT SUB
