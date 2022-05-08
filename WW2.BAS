@@ -5415,11 +5415,9 @@ SUB filer (switch)
 		CASE 1, 4
 	redo:
 		mtx$(0) = "Start Year"
-		FOR j = 1939 TO 1960
-			t$ = "euro" + STR$(j) + ".dat"
-			colour = 3
-			GOSUB getyr
-		NEXT j
+
+		colour = 3
+		GOSUB getyr
 
 		CALL clrbot
 		LOCATE 29, 1: PRINT "Loading "; begin$;
@@ -5593,23 +5591,48 @@ SUB filer (switch)
 		RETURN
 	'...................................menu of options.........................
 	getyr:
-		size = 0
-		IF LEN(t$) = 0 THEN choose = -1: EXIT SUB
+	' Get List of Scenario Files
+	DIM DirList$(21)
+	
+	TmpFile$ = "SCENARIOS.DAT"
+
+	' Use the System Shell to Output a File With List of Scenarios
+	' QB64 supports POSIX, theoretically this should work across OS'es
+	SHELL _HIDE "DIR euro*.dat /b > " + TmpFile$
+	filenum% = 0
+	' Get a free file handle
+	ff% = FREEFILE
+
+	' Read the list of scenario files
+	OPEN TmpFile$ FOR INPUT AS #ff%
+	DO WHILE NOT EOF(ff%) AND filenum% < 21
+	filenum% = filenum% + 1
+	LINE INPUT #ff%, DirList$(filenum%)
+	LOOP
+	CLOSE #ff%
+
+	
+	size = 0
+
+	' Exit sub if DirList$ has no items
+	IF DirList$(1) = "" THEN choose = -1: EXIT SUB
+
+	' Iterate through the list of files
+	FOR i = 1 TO 21
+		t$ = DirList$(i)
+		IF t$ = "" THEN EXIT FOR
 		size = size + 1
-		mtx$(size) = LTRIM$(MID$(t$, 5, 4))
+		t$ = LTRIM$(MID$(t$, 5, 4))
+		mtx$(size) = t$
 		array(size) = size
-		DO WHILE t$ <> "" AND size < 21
-			t$ = DIR$
-			t$ = LTRIM$(MID$(t$, 5, 4))
-			IF t$ = "" THEN EXIT DO
-			size = size + 1: mtx$(size) = t$: array(size) = size
-		LOOP
-		CALL bubble((size))
-		tlx = 18: tly = 14 - .5 * size
-		CALL menu(11)
-		IF choose < 0 THEN choose = -1: EXIT SUB
-		begin$ = mtx$(choose)
-		IF LEN(begin$) < 1 THEN choose = -1: EXIT SUB
+	NEXT i
+
+	CALL bubble((size))
+	tlx = 18: tly = 14 - .5 * size
+	CALL menu(11)
+	IF choose < 0 THEN choose = -1: EXIT SUB
+	begin$ = mtx$(choose)
+	IF LEN(begin$) < 1 THEN choose = -1: EXIT SUB
 	RETURN
 	getsave:
 		CLS
