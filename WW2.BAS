@@ -1961,8 +1961,23 @@ SUB paratroop (who)
 		CALL movefrom(index, a)
 		parasw = 0
 		IF index = 0 THEN GOTO toot
-		IF armyloc(index) > 56 THEN CALL clrbot: PRINT "ILLEGAL PARATROOP MOVE"; : TICK 2: CALL clrbot: CALL clrrite: GOTO tooter
-		IF index < 0 THEN CALL clrbot: PRINT "NO ELIGIBLE UNITS TO PARATROOP - CAPACITY="; RTRIM$(STR$(chute(who))); "00"; : TICK 2: CALL clrbot: CALL clrrite: GOTO tooter
+		IF index < 0 THEN 
+			CALL clrbot
+			PRINT "NO ELIGIBLE UNITS TO PARATROOP - CAPACITY="; RTRIM$(STR$(chute(who))); "00"; 
+			TICK 2
+			CALL clrbot
+			CALL clrrite
+			GOTO tooter
+		END IF
+		IF armyloc(index) > 56 THEN 
+			CALL clrbot
+			PRINT "ILLEGAL PARATROOP MOVE";
+			TICK 2
+			CALL clrbot
+			CALL clrrite
+			GOTO tooter
+		END IF
+
 		IF unittype(index) <> 4 THEN CALL clrbot: PRINT "ONLY ELITE UNITS CAN PARATROOP"; : TICK 2: CALL clrbot: CALL clrrite: GOTO tooter
 		CALL airdist(who, armyloc(index), d)
 		IF d < 0 THEN
