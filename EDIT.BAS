@@ -733,7 +733,7 @@ SUB filer (switch)
 		CASE 1, 4
 	redo:
 		mtx$(0) = "Starting Year"
-		t$ = DIR$("euro*.dat")
+
 		colour = 3
 		GOSUB getyr
 
@@ -743,7 +743,7 @@ SUB filer (switch)
 		GOSUB wbase
 		PRINT "..";
 		t$ = "ww" + begin$ + ".ini"
-		IF LEN(DIR$(t$)) < 1 THEN CALL clrbot: COLOR 14: LOCATE 29, 1: PRINT "INITILIZATION FILE NOT FOUND :"; t$; : begin$ = "": TICK 5: CALL clrbot: EXIT SUB
+		IF _FILEEXISTS(t$) = 0 THEN CALL clrbot: COLOR 14: LOCATE 29, 1: PRINT "INITILIZATION FILE NOT FOUND :"; t$; : begin$ = "": TICK 5: CALL clrbot: EXIT SUB
 		OPEN "I", 1, t$
 		INPUT #1, scenario$
 		INPUT #1, month, year
@@ -820,25 +820,50 @@ SUB filer (switch)
 		RETURN
 	'...................................menu of options.........................
 	getyr:
-		size = 0
-		IF LEN(t$) = 0 THEN choose = -1: EXIT SUB
+	' Get List of Scenario Files
+	DIM DirList$(21)
+
+	TmpFile$ = "SCENARIOS.DAT"
+
+	' Use the System Shell to Output a File With List of Scenarios
+	' QB64 supports POSIX, theoretically this should work across OS'es
+	SHELL _HIDE "DIR euro*.dat /b > " + TmpFile$
+	filenum% = 0
+	' Get a free file handle
+	ff% = FREEFILE
+
+	' Read the list of scenario files
+	OPEN TmpFile$ FOR INPUT AS #ff%
+	DO WHILE NOT EOF(ff%) AND filenum% < 21
+	filenum% = filenum% + 1
+	LINE INPUT #ff%, DirList$(filenum%)
+	LOOP
+	CLOSE #ff%
+
+	size = 0
+
+	' Exit sub if DirList$ has no items	
+	IF DirList$(1) = "" THEN choose = -1: EXIT SUB
+
+	' Iterate through the list of files
+	FOR i = 1 TO 21
+		t$ = DirList$(i)
+		IF t$ = "" THEN EXIT FOR
 		size = size + 1
+		t$ = LTRIM$(MID$(t$, 5, 4))
 		mtx$(size) = t$
 		array(size) = size
-		DO WHILE t$ <> "" AND size < 21
-			t$ = DIR$
-			IF t$ = "" THEN EXIT DO
-			size = size + 1: mtx$(size) = t$: array(size) = size
-		LOOP
-		CALL bubble((size))
-		size = size + 1: mtx$(size) = "Quit"
-		tlx = 18: tly = 14 - .5 * size
-		CALL menu(11)
-		IF choose < 0 THEN choose = -1: EXIT SUB
-		IF choose = size THEN END
-		x = INSTR(mtx$(choose), "1")
-		begin$ = LTRIM$(MID$(mtx$(choose), x, 4))
-		IF LEN(begin$) < 1 THEN choose = -1: EXIT SUB
+	NEXT i
+
+	CALL bubble((size))
+	size = size + 1: mtx$(size) = "Quit"
+	tlx = 18: tly = 14 - .5 * size
+	CALL menu(11)
+	IF choose < 0 THEN choose = -1: EXIT SUB
+	IF choose = size THEN END
+	x = INSTR(mtx$(choose), "1")
+	begin$ = LTRIM$(MID$(mtx$(choose), x, 4))
+	IF LEN(begin$) < 1 THEN choose = -1: EXIT SUB
 	RETURN
 END SUB
 
