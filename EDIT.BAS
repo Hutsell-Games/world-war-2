@@ -272,7 +272,7 @@ filex:
 			a$ = "ww" + begin$ + ".ini"
 			PRINT : COLOR 11
 			PRINT "Saving "; a$; " scenario file beginning:  "; month$(month); ","; year
-			IF LEN(DIR$(a$)) > 0 THEN
+			IF _FILEEXISTS(a$) THEN
 				COLOR 14
 				PRINT "First : Make backup files "
 				t$ = "ww" + begin$ + ".bak"
@@ -708,7 +708,7 @@ SUB europe (flag)
 END SUB
 
 SUB features
-	IF LEN(DIR$("m.vga")) > 0 THEN
+	IF _FILEEXISTS("m.vga") THEN
 	DEF SEG = VARSEG(graphic(1))
 	BLOAD "m.vga", VARPTR(graphic(1))
 	DEF SEG
@@ -803,7 +803,7 @@ SUB filer (switch)
 	' 1=US 2=German 3=UK 4=French 5=Polish 6=Russian 7=Italian 8=Generic Allied
 	' 7th position : shows location of matching text. If > 95 then IS invasion port
 		t$ = "euro" + begin$ + ".dat"
-		IF LEN(DIR$(t$)) = 0 THEN t$ = "euro1939.dat"
+		IF NOT _FILEEXISTS(t$) THEN t$ = "euro1939.dat"
 		OPEN "I", 1, t$
 		vptotal = 0
 		FOR k = 1 TO 2: income(k) = 0: control(k) = 0: NEXT k
@@ -1135,7 +1135,6 @@ SUB menu (switch%)
 						file$ = "help.sc2"
 					END SELECT
 					IF file$ = "" THEN RETURN
-					IF LEN(DIR$(file$)) = 0 THEN RETURN
 					SCREEN 0
 					DEF SEG = &HB800
 					BLOAD file$, 0
