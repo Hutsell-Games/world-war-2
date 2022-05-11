@@ -1,3 +1,5 @@
+1. Update `GO.BAT`, removing some unsupported characters and outdated information.
+1. Remove some unneeded sound related files.
 1. QB64 doesn't support the `DIR$` statement from PDS 7.1, using `SHELL` to save list of files to temporary file then reading and displaying in WW2 Editor.
 1. Corrected an error thrown when attempting to paratroop with no troops available to paratroop. Used the same checks and error messages as were in the original code but swapped two of them so that a check for a negative number was made first. Seems QB64 implementation is slightly different from PDS implementation.
 1. QB64 doesn't support the `DIR$` statement from PDS 7.1, using `SHELL` to save list of files to temporary file then reading and displaying in WW2.
