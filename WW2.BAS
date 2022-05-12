@@ -477,18 +477,12 @@ SELECT CASE choose
 	CALL recruit((side))
 	chosit = 23
 	GOTO menu0
-'--------------------------------------------------------------------------
-'                       navy
-'--------------------------------------------------------------------------
-	CASE 2
+	CASE 2 ' Navy
 	IF weather = 4 AND teklev(side, 4) < 3 THEN CALL clrbot: PRINT "Seas are TOO STORMY for naval actions"; : TICK -3: CALL ships: GOTO menu0
 	IF nflag = 0 THEN CALL navy((side), 0)
 	CALL ships
 	chosit = 24
-'--------------------------------------------------------------------------
-'                       army moves
-'--------------------------------------------------------------------------
-	CASE 3
+	CASE 3 ' Army Moves
 	CALL movefrom(index, target)
 	IF target > 0 AND index > 0 GOTO tent
 	IF index = -1 THEN mflag = 1
@@ -537,10 +531,7 @@ dudd:
 IF index > 0 THEN CALL placearmy(index)
 	chosit = 24
 	GOTO menu0
-'--------------------------------------------------------------------------
-'                               airforce
-'--------------------------------------------------------------------------
-	CASE 4
+	CASE 4 ' Air Force
 	IF aflag < 2 THEN
 		IF weather = 4 AND teklev(side, 7) < 3 THEN CALL clrbot: PRINT "Planes are FOGGED IN !"; : TICK -3: GOTO menu0
 		CALL airforce(side, 0)
@@ -554,11 +545,7 @@ IF index > 0 THEN CALL placearmy(index)
 	IF mflag = 0 THEN chosit = 24
 	IF rflag = 0 THEN chosit = 22
 	GOTO menu0
-'--------------------------------------------------------------------------
-'                               technology
-
-'--------------------------------------------------------------------------
-	CASE 5
+	CASE 5 ' Technology
 hitek:
 	tlx = 67: tly = 15
 	hilite = 14: colour = 5
@@ -609,10 +596,7 @@ maxlev:
 notek:
 	CALL clrbot: PRINT "Not enough funds to upgrade technology";
 	GOTO hitek
-'==========================================================================
-'                               End Turn
-'==========================================================================
-	CASE 6
+	CASE 6 ' End Turn
 	tlx = 67: tly = 15
 	hilite = 15: colour = 3: chosit = 27
 	mtx$(0) = "End Turn"
@@ -635,18 +619,12 @@ endturn:
 		END IF
 	END IF
 	GOTO newmnth
-'==========================================================================
-'                               Inform
-'==========================================================================
-	CASE 7
+	CASE 7 ' Inform
 	CALL report((side))
 	CALL showmove(side)
 	CALL statusbar
 	chosit = 28
-'==========================================================================
-'                            Commands
-'==========================================================================
-	CASE 8
+	CASE 8 ' Commands
 	chosit = 24
 optmen:
 	tlx = 67: tly = 14
@@ -666,18 +644,12 @@ optmen:
 	CALL menu(10): CALL clrrite
 	chosit = 29
 	 SELECT CASE choose
-'---------------------------------------------------------------------------
-'                               Cancel
-'---------------------------------------------------------------------------
-		CASE -1
+		CASE -1 ' Cancel
 	CALL statusbar: GOTO menu0
 		CASE 1
 	CALL cancel(side): mflag = 0
 	choose = 22
-'---------------------------------------------------------------------------
-'                               Paratroop
-'---------------------------------------------------------------------------
-		CASE 2
+		CASE 2 ' Paratroop
 	IF rr(side) = 0 THEN
 		IF weather = 4 AND teklev(side, 7) < 3 THEN CALL clrbot: PRINT "No air drops - planes are FOGGED IN !"; : TICK 3: GOTO menu0
 		PUT (620, 1), drop, PSET
@@ -690,27 +662,18 @@ optmen:
 	choose = 23
 	IF rr(side) > 0 THEN choose = 0
 	GOTO optmen
-'---------------------------------------------------------------------------
-'                               Fortify
-'---------------------------------------------------------------------------
-		CASE 3
+		CASE 3 ' Fortify
 	IF cash(side) < cost THEN CALL clrbot: PRINT "Not enough money for fort"; : GOTO optmen
 	CALL fortify(target)
 	choose = 24
 	GOTO optmen
-'---------------------------------------------------------------------------
-'                               Combine
-'---------------------------------------------------------------------------
-		CASE 4
+		CASE 4 ' Combine
 	x = side
 	CALL combine(x)
 	IF x < 0 THEN CALL clrbot: PRINT "No armies in same city to combine"; : GOTO optmen
 	choose = 25
 	GOTO optmen
-'-------------------------------------------------------------------------
-'                               Detach
-'-------------------------------------------------------------------------
-		CASE 5
+		CASE 5 ' Detach
 	COLOR 14: LOCATE 1, 68: PRINT "DETACH UNIT"
 	CALL movefrom(index, target)
 	IF target < 1 OR index < 1 GOTO optmen
@@ -718,10 +681,7 @@ optmen:
 	CALL detach(side, index, target)
 	choose = 26
 	GOTO optmen
-'---------------------------------------------------------------------------
-'                               Supply
-'---------------------------------------------------------------------------
-		CASE 6
+		CASE 6 ' Supply
 	CALL starfin(star, fin, (side))
 	mtx$(0) = "Supply"
 	tlx = 67: tly = 5: colour = 5
@@ -740,17 +700,11 @@ alone:
 	CALL placearmy(index)
 	choose = 27
 	GOTO optmen
-'-------------------------------------------------------------------------
-'                           Rotate Stack
-'-------------------------------------------------------------------------
-		CASE 7
+		CASE 7 ' Rotate Stack
 	CALL rotate(side)
 	choose = 28
 	GOTO optmen
-'-------------------------------------------------------------------------
-'                               Drill
-'-------------------------------------------------------------------------
-		CASE 8
+		CASE 8 ' Drill
 	COLOR 14: LOCATE 1, 68: PRINT "DRILL ARMY"
 	v2 = 1
 	CALL movefrom(index, target)
@@ -763,10 +717,7 @@ alone:
 	CALL TICK(turbo!): clrbot
 	armymove(index) = -1
 	GOTO optmen
-'-------------------------------------------------------------------------
-'                               Home Guard
-'-------------------------------------------------------------------------
-		CASE 9
+		CASE 9 ' Home Guard
 	IF cash(side) < costfac(5) GOTO optmen
 	CALL newcity(0, 0)
 	IF choose < 0 OR choose <> 2 GOTO optmen
@@ -782,7 +733,7 @@ alone:
 '==========================================================================
 '                               Utility Menu
 '==========================================================================
-	CASE 9
+	CASE 9 ' Utility
 utile:
 	chosit = 30
 	mtx$(0) = "Utility"
@@ -794,13 +745,13 @@ utile:
 	mtx$(5) = "Balance " + STR$(difficult - 3)
 	mtx$(6) = "End Cond"
 	mtx$(7) = "Vary Start"
-	mtx$(8) = "Neutrals": IF neuter = 1 THEN mtx$(8) = mtx$(8) + " �"
+	mtx$(8) = "Neutrals": IF neuter = 1 THEN mtx$(8) = mtx$(8) + " +"
 	mtx$(9) = "Keyboard": IF Mighty > 0 THEN mtx$(9) = "Mouse"
-	mtx$(10) = "Weather ": IF weather > 0 THEN mtx$(10) = mtx$(10) + " �"
+	mtx$(10) = "Weather ": IF weather > 0 THEN mtx$(10) = mtx$(10) + " +"
 	mtx$(11) = "Hi Scores"
-	mtx$(12) = "Begin PBM": IF pbm > 0 THEN mtx$(12) = mtx$(12) + " �"
+	mtx$(12) = "Begin PBM": IF pbm > 0 THEN mtx$(12) = mtx$(12) + " +"
 	mtx$(13) = "PBM Drv " + pb$
-	mtx$(14) = "Autosave": IF autosave > 0 THEN mtx$(14) = mtx$(14) + " �"
+	mtx$(14) = "Autosave": IF autosave > 0 THEN mtx$(14) = mtx$(14) + " +"
 	mtx$(15) = "Save Config"
 	colour = 5: hilite = 15
 	size = 15: tlx = 67: tly = 8
@@ -808,10 +759,7 @@ utile:
 	CALL menu(10)
 	CALL clrrite
 		SELECT CASE choose
-'-------------------------------------------------------------------------
-'                               Swap Sides
-'-------------------------------------------------------------------------
-		CASE -1
+		CASE -1 ' Swap Sides
 		CALL statusbar: GOTO menu0
 		CASE 1
 		IF player = 2 GOTO menu0
@@ -820,24 +768,18 @@ utile:
 		PRINT "Now playing "; force$(side); " side"; : CALL sndfx(1)
 		CALL statusbar
 		GOTO menu0
-'-------------------------------------------------------------------------
-'                               Solo or 2 Player
-'-------------------------------------------------------------------------
-		CASE 2
+		CASE 2 ' Solo or 2 Player
 		player = 3 - player: CALL clrbot
 		CALL sndfx(1)
 		a$ = "Solo": IF player = 2 THEN a$ = "2 Player"
 		PRINT a$; " Game";
 		choose = 23: GOTO utile
-'-------------------------------------------------------------------------
-'                               Sounds
-'-------------------------------------------------------------------------
-		CASE 3
+		CASE 3 ' Sounds
 		CALL clrrite: choose = noise + 22
 		mtx$(0) = "SOUNDS"
 		mtx$(1) = "Quiet"
 		mtx$(2) = "Sound"
-		mtx$(3) = " & Sound"
+		mtx$(3) = "Music/Sound"
 		size = 3: tlx = 67: tly = 12
 		CALL menu(0): CALL clrrite
 		IF choose < 1 GOTO menu0
@@ -845,10 +787,7 @@ utile:
 		noise = choose - 1
 		CALL sndfx(1)
 		choose = 24: GOTO utile
-'-------------------------------------------------------------------------
-'                               Display Speed
-'-------------------------------------------------------------------------
-		CASE 4
+		CASE 4 ' Display Speed
 		choose = turbo! + 21
 		mtx$(0) = "Speed"
 		mtx$(1) = "Fast"
@@ -864,10 +803,7 @@ utile:
 			PRINT "Display Speed : "; mtx$(choose);
 		END IF
 		choose = 25: GOTO utile
-'-------------------------------------------------------------------------
-'                               Play Balance
-'-------------------------------------------------------------------------
-	   CASE 5
+	   CASE 5 ' Play Balance
 facile:
 		choose = difficult + 21
 		mtx$(0) = "Balance"
@@ -883,16 +819,10 @@ facile:
 		CALL clrbot: PRINT "Play Balance : "; mtx$(choose);
 		difficult = choose
 		choose = 26: GOTO facile
-'-------------------------------------------------------------------------
-'                               Ending Conditions
-'-------------------------------------------------------------------------
-	   CASE 6
+	   CASE 6 ' Ending Conditions
 		CALL endit
 		choose = 27: GOTO utile
-'-------------------------------------------------------------------------
-'                              Vary Start Conditions
-'-------------------------------------------------------------------------
-	   CASE 7
+	   CASE 7 ' Vary Start Conditions
 		CALL filer(1)
 	   FOR s = 1 TO 2
 		star = 1: fin = 10: IF s = 2 THEN star = 31: fin = 40
@@ -932,16 +862,10 @@ redux:
 		NEXT s
 		CALL europe(0)
 		choose = 28: GOTO utile
-'-------------------------------------------------------------------------
-'                               Neutrality
-'-------------------------------------------------------------------------
-	   CASE 8
+	   CASE 8 ' Neutrality
 		neuter = 1 - neuter
 		choose = 29: GOTO utile
-'-------------------------------------------------------------------------
-'                               Mouse
-'-------------------------------------------------------------------------
-	   CASE 9
+	   CASE 9 ' Mouse
 		Mighty = 1 - Mighty
 		a$ = "": IF Mighty > 0 THEN a$ = "and MOUSE"
 		a$ = a$ + " cntrl"
@@ -949,17 +873,11 @@ redux:
 		PRINT "Keyboard "; a$;
 		choose = 30
 		GOTO utile
-'-------------------------------------------------------------------------
-'                               Weather
-'-------------------------------------------------------------------------
-	   CASE 10
+	   CASE 10 ' Weather
 		weather = 1 - weather
 		choose = 31
 		GOTO utile
-'-------------------------------------------------------------------------
-'                               Clear High Scores
-'-------------------------------------------------------------------------
-	   CASE 11
+	   CASE 11 ' Clear High Scores
 		CALL maxx(1)
 		tlx = 67: tly = 15
 		hilite = 15: colour = 3
@@ -976,17 +894,11 @@ redux:
 		NEXT k
 		CLOSE #1
 		CALL clrbot: PRINT "High Scores Cleared for "; begin$;
-'-------------------------------------------------------------------------
-'                               Begin PBM
-'-------------------------------------------------------------------------
-		CASE 12
+		CASE 12 ' Begin PBM
 		pbm = 1
 		player = 2: side = 1: CALL clrbot: PRINT "Starting PBM Game for "; force$(side); " Side";
 		GOTO pbmdrv
-'-------------------------------------------------------------------------
-'                               PBM Drive
-'-------------------------------------------------------------------------
-		CASE 13
+		CASE 13 ' PBM Drive
 pbmdrv:
 		CALL clrrite
 		mtx$(0) = "PBM Drive"
@@ -998,33 +910,21 @@ pbmdrv:
 		IF choose > 0 THEN pb$ = mtx$(choose)
 		CALL clrrite
 		GOTO sacf
-'-------------------------------------------------------------------------
-'                               Autosave
-'-------------------------------------------------------------------------
-	   CASE 14
+	   CASE 14 ' Autosave
 		 autosave = 1 - autosave
 		 choose = 35: GOTO utile
-'-------------------------------------------------------------------------
-'                               Save CFG
-'-------------------------------------------------------------------------
-	   CASE 15
+	   CASE 15 ' Save CFG
 sacf:
 		OPEN "O", 1, "ww2.cfg"
 		WRITE #1, side, noise, difficult, player, turbo!, batwon(1), batwon(2), casualty&(1), casualty&(2), neuter, Mighty, weather, pb$, autosave
 		CLOSE #1
 		CALL clrbot: PRINT "Configuration Saved"; : TICK 1
 		END SELECT
-'==========================================================================
-'                               Editor
-'==========================================================================
-	CASE 10
+	CASE 10 ' Editor
 		GOSUB yesno
 		IF choose <> 1 GOTO menu0
 		RUN "edit.exe"
-'==========================================================================
-'                               Files
-'==========================================================================
-	CASE 11
+	CASE 11 ' Files
 	ON ERROR GOTO filerr
 	size = 0
 	FOR k = 1 TO 10
@@ -1068,10 +968,7 @@ loader:
 filerr:
 	IF ERR = 53 THEN filel = 0: RESUME filex
 	filel = 0: RESUME menu0
-'==========================================================================
-'                               Quick Turn
-'==========================================================================
-	CASE 99
+	CASE 99 ' Quick Turn
 	GOTO endturn
 CASE ELSE
 	chosit = 22
@@ -3636,7 +3533,6 @@ SUB choices (wide)
 	NEXT i
 	COLOR 11
 	IF f3key > 0 THEN
-		LOCATE 27, 68: PRINT "F1=Help"
 		LOCATE 28, 68: PRINT "F7=End Turn";
 	END IF
 END SUB
@@ -4341,21 +4237,6 @@ SUB menu (switch%)
 					RETURN
 				CASE "A"
 					choose = 99: EXIT SUB
-				CASE ";"
-					a$ = UCASE$(mtx$(0)): file$ = ""
-					SELECT CASE a$
-						CASE "MAIN"
-						file$ = "help.sc1"
-					END SELECT
-					IF file$ = "" THEN RETURN
-					IF _FILEEXISTS(file$) = 0 THEN RETURN
-					SCREEN 0
-					DEF SEG = &HB800
-					BLOAD file$, 0
-					DEF SEG
-					TICK 0
-					SCREEN 12
-					GOTO redoit
 				CASE ">"
 					CALL report(94)
 					GOTO redux
@@ -4458,10 +4339,7 @@ SUB navy (who, chx)
 	anchor:
 	'---------------------------------------------------------------------------
 	SELECT CASE choose
-	'---------------------------------------------------------------------------
-	'                               Build Ship
-	'---------------------------------------------------------------------------
-		CASE 1
+		CASE 1 ' Build Ship
 		IF cash(who) < cost GOTO ahoy
 		IF chx = 1 AND navysize(who) > 9 THEN EXIT SUB
 		IF chx = 0 AND (cash(who) < cost OR navysize(who) > 9) THEN GOTO ahoy
@@ -4498,10 +4376,7 @@ SUB navy (who, chx)
 		CALL sndfx(4)
 		CALL clrbot: PRINT force$(who); " navy increased to "; navysize(who);
 		IF who = side THEN CALL TICK(turbo!)
-	'---------------------------------------------------------------------------
-	'                               Attack City
-	'---------------------------------------------------------------------------
-		CASE 2
+		CASE 2 ' Attack City
 		IF cityp(navyloc(who)) = who THEN
 			IF chx = 2 THEN EXIT SUB
 			GOTO ahoy
@@ -4568,10 +4443,7 @@ SUB navy (who, chx)
 		CALL showcity(target)
 		victory&(who) = victory&(who) + cityv(target)
 		EXIT SUB
-	'---------------------------------------------------------------------------
-	'                               Sail
-	'---------------------------------------------------------------------------
-		CASE 3
+		CASE 3 ' Sail
 		IF navyloc(who) = 0 AND chx > 0 THEN EXIT SUB
 		IF navyloc(who) = 0 GOTO ahoy
 
@@ -4643,10 +4515,7 @@ SUB navy (who, chx)
 	sail3:
 		CALL europe(0): CALL statusbar
 		EXIT SUB
-	'---------------------------------------------------------------------------
-	'                               Amphib
-	'---------------------------------------------------------------------------
-		CASE 4
+		CASE 4 ' Amphibious
 		IF navysize(who) < 1 GOTO anchor
 		CALL commander((who), empty)
 		IF empty = 0 THEN chx = 3: GOTO anchor
@@ -4664,10 +4533,7 @@ SUB navy (who, chx)
 		CALL image2(a$, 4)
 		CALL news(a$)
 		EXIT SUB
-	'---------------------------------------------------------------------------
-	'                               Exit
-	'---------------------------------------------------------------------------
-		CASE ELSE
+		CASE ELSE ' Exit
 		EXIT SUB
 	END SELECT
 	GOTO ahoy
@@ -5302,10 +5168,7 @@ SUB endit
 	CALL europe(0)
 END SUB
 
-SUB events
-	'==========================================================================
-	'                              Special Events
-	'==========================================================================
+SUB events ' Special Events
 	CALL clrbot
 	'............................................................................
 	t$ = "special.evt"

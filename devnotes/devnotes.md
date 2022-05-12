@@ -1,3 +1,7 @@
+1. Remove Help option, this was useful in original context of DOS where it wasn't easy to refer to two windows at the same time (e.g. help file and game) but no longer necessary with modern windowing solutions.
+1. Reformatting code, mainly expanding multiple statements across multiple lines instr\ead of all on a single line.
+    - This was helpful in older days to keep source code files small as there were easily reachable limits on code file size, but this is not a problem for us.
+    - Also cleaning up comments, mainly condensing them.
 1. Remove code related to sound blaster and MIDIs from main application.
 1. Remove `EGACW.SC1` and `EGACW.SC2`, these are not called anywhere.
 1. Remove a number of files related to PDS 7.1/QB but no longer useful for QB64: `QBX.INI`, `QBX.BI`, `QBX.QLB`, `WW2.LNK`, `WW2.MAK`, `WW2MAKE.BTM`
