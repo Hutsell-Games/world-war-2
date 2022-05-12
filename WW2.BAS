@@ -3229,7 +3229,7 @@ SUB airforce (who, chx)
 			airloc(who) = x1
 			CALL hangar
 			aflag = aflag + 1: IF teklev(who, 7) < 3 THEN aflag = 2
-			IF noise > 0 AND THEN SOUND 1200, 1: SOUND 900, 1
+			IF noise > 0 THEN SOUND 1200, 1: SOUND 900, 1
 			CALL clrrite
 		CASE 4
 			
@@ -5064,7 +5064,7 @@ SUB capture (active, c, s, flag, flee)
 	'------------------------------------------------------------------------------
 	cityp(c) = s
 	CALL flashcity(c)
-	IF flee > 0 AND noise > 1 AND THEN
+	IF flee > 0 AND noise > 1 THEN
 	' 1=US 2=German 3=UK 4=French 5=Polish 6=Russian 7=Italian 8=Generic Allied
 	SELECT CASE nation(active)
 	CASE 1, 3, 5, IS > 7
@@ -5178,7 +5178,7 @@ SUB events ' Special Events
 		CALL image2("Russia Enters the War", 4)
 		cityp(58) = 1
 		CALL flashcity(58)
-		IF noise > 1 AND THEN
+		IF noise > 1 THEN
 			PLAY "T170o3c4.o2b-8a-4g4f4e4f4c4o3c4.d-8c4o2b-4a-4g4f2"
 		END IF
 		TICK -2
@@ -5243,7 +5243,7 @@ SUB events ' Special Events
 END SUB
 
 SUB filer (switch)
-	'....................................................configuration..........
+	' Configuration
 	IF switch = 5 THEN GOSUB wbase: EXIT SUB
 	IF switch < 3 THEN
 		OPEN "I", 1, "ww2.cfg"
@@ -5252,187 +5252,239 @@ SUB filer (switch)
 		CLOSE #1
 	END IF
 	IF switch < 1 THEN EXIT SUB
-	'...........................................................................
+
 	SELECT CASE switch
 		CASE 1, 4
-	redo:
-		mtx$(0) = "Start Year"
+			redo:
+			mtx$(0) = "Start Year"
 
-		colour = 3
-		GOSUB getyr
+			colour = 3
+			GOSUB getyr
 
-		CALL clrbot
-		LOCATE 29, 1: PRINT "Loading "; begin$;
-	'....................................initialization.........................
-		GOSUB wbase
-		PRINT "..";
-		t$ = "ww" + begin$ + ".ini"
-		IF _FILEEXISTS(t$) = 0 THEN CALL clrbot: COLOR 14: LOCATE 29, 1: PRINT "INITILIZATION FILE NOT FOUND :"; t$; : begin$ = "": TICK 5: CALL clrbot: EXIT SUB
-		OPEN "I", 1, t$
-		INPUT #1, scenario$
-		INPUT #1, mnth, yr
-	'               set end game conditions
-		FOR i = 1 TO 4: INPUT #1, vicflag(i): NEXT i
+			CALL clrbot
+			LOCATE 29, 1: PRINT "Loading "; begin$;
+
+			' Initialization
+			GOSUB wbase
+			PRINT "..";
+			t$ = "ww" + begin$ + ".ini"
+			IF _FILEEXISTS(t$) = 0 THEN CALL clrbot: COLOR 14: LOCATE 29, 1: PRINT "INITILIZATION FILE NOT FOUND :"; t$; : begin$ = "": TICK 5: CALL clrbot: EXIT SUB
+			OPEN "I", 1, t$
+			INPUT #1, scenario$
+			INPUT #1, mnth, yr
+
+			' Set End Game Conditions
+			FOR i = 1 TO 4
+				INPUT #1, vicflag(i)
+			NEXT i
+			FOR j = 1 TO 2
+				FOR k = 1 TO 8
+					INPUT #1, teklev(j, k)
+				NEXT k
+			NEXT j
+			INPUT #1, a ' # of Allied Armies
+			FOR i = 1 TO a
+				INPUT #1, nation(i), armyloc(i), unittype(i), armysize(i), armyexper(i), supply(i)
+				PRINT ".";
+				IF armyloc(i) < 0 THEN GOSUB randarm
+				occupied(armyloc(i)) = i
+				IF nation(i) = 2 OR nation(i) = 7 THEN nation(i) = 8
+			NEXT i
+			INPUT #1, a ' # of Axis Armies
+			FOR i = 31 TO 30 + a
+				INPUT #1, nation(i), armyloc(i), unittype(i), armysize(i), armyexper(i), supply(i)
+				IF armyloc(i) < 0 THEN GOSUB randarm
+				PRINT ".";
+				occupied(armyloc(i)) = i
+				pct! = pct! + .0007 * armysize(i) * costfac(unittype(i))
+			NEXT i
+			FOR i = 1 TO 2
+				INPUT #1, cash(i)
+			NEXT i
+			FOR i = 1 TO 2
+				INPUT #1, navysize(i), navyloc(i)
+			NEXT i
+			FOR i = 1 TO 2
+				INPUT #1, airsize(i), airloc(i)
+				chute(who) = 15 * (airsize(who) * (teklev(who, 7) + 1))
+			NEXT i
+			INPUT #1, capcity(1), capcity(2)
+			PRINT "..";
+			CLOSE #1
+		CASE 2 ' Load Saved Game
+			tlx = 0: tly = 12: colour = 6
+			mtx$(0) = "Load Saved Game"
+			colour = 4
+			GOSUB getsave
+
+			CALL clrbot
+			PRINT "Loading";
+
+			OPEN "I", 1, file$
+				INPUT #1, scenario$, begin$
+			CLOSE #1
+			IF begin$ <> "1939" THEN begin$ = "1940"
+
+			GOSUB wbase
+			IF _FILEEXISTS(t$) = 0 THEN CALL clrbot: COLOR 14: LOCATE 29, 1: PRINT "FILE NOT FOUND :"; t$; : begin$ = "": TICK 5: CALL clrbot: EXIT SUB
+
+			OPEN "I", 1, file$
+			INPUT #1, scenario$, begin$, a$
+			INPUT #1, mnth, yr, player, side
+			INPUT #1, rflag, mflag, nflag, aflag, weather
+			FOR i = 1 TO 4
+				INPUT #1, vicflag(i)
+			NEXT i
+
+			FOR i = 1 TO ncity
+				INPUT #1, a$, occupied(i), cityp(i), fort(i): IF i MOD 3 <> 0 THEN PRINT ".";
+			NEXT i
+			FOR i = 1 TO maxarmy
+				INPUT #1, nation(i), armyloc(i), unittype(i), armysize(i), armyexper(i), supply(i), armymove(i)
+			NEXT i
+
+			FOR i = 1 TO 2
+				INPUT #1, cash(i), cntrl(i), income(i), victory&(i), capcity(i)
+				INPUT #1, navysize(i), navyloc(i), navymove(i), airsize(i), airloc(i), rr(i), tracks(i)
+			NEXT i
+			FOR j = 1 TO 2
+				FOR k = 1 TO 8
+					INPUT #1, teklev(j, k)
+				NEXT k
+			NEXT j
+			CLOSE #1
+
+			FOR k = 1 TO 2
+				chute(who) = 15 * (airsize(who) * (teklev(who, 7) + 1))
+			NEXT k
+
+			CALL europe(1)
+			CALL clrbot
+			CALL statusbar
+			FOR k = 1 TO 2
+				IF rr(k) > 0 THEN CALL trooper(k, 1)
+				CALL showmove(k)
+			NEXT k
+		CASE 3, 6 ' Save
+			IF switch = 3 THEN GOSUB getsave ELSE file$ = "wwii5.sav"
+			CALL clrbot
+			PRINT "Saving "; file$;
+			OPEN "O", 1, file$
+			WRITE #1, scenario$, begin$, DATE$
+			WRITE #1, mnth, yr, player, side
+			WRITE #1, rflag, mflag, nflag, aflag, weather
+			FOR i = 1 TO 4
+				WRITE #1, vicflag(i)
+			NEXT i
+
+			FOR i = 1 TO ncity
+				WRITE #1, city$(i), occupied(i), cityp(i), fort(i): IF i MOD 3 <> 0 THEN PRINT ".";
+			NEXT i
+			FOR i = 1 TO maxarmy
+				WRITE #1, nation(i), armyloc(i), unittype(i), armysize(i), armyexper(i), supply(i), armymove(i)
+			NEXT i
+
+			FOR i = 1 TO 2
+				WRITE #1, cash(i), cntrl(i), income(i), victory&(i), capcity(i)
+				WRITE #1, navysize(i), navyloc(i), navymove(i), airsize(i), airloc(i), rr(i), tracks(i)
+			NEXT i
+			FOR j = 1 TO 2
+				FOR k = 1 TO 8
+					WRITE #1, teklev(j, k)
+				NEXT k
+			NEXT j
+			CLOSE #1
 		
-		FOR j = 1 TO 2
-		FOR k = 1 TO 8: INPUT #1, teklev(j, k): NEXT k
-		NEXT j
-		INPUT #1, a     ' number of allied armies
-	FOR i = 1 TO a
-		INPUT #1, nation(i), armyloc(i), unittype(i), armysize(i), armyexper(i), supply(i)
-		PRINT ".";
-		IF armyloc(i) < 0 THEN GOSUB randarm
-		occupied(armyloc(i)) = i
-		IF nation(i) = 2 OR nation(i) = 7 THEN nation(i) = 8
-		NEXT i
-		INPUT #1, a             ' number of axis armies
-	FOR i = 31 TO 30 + a
-		INPUT #1, nation(i), armyloc(i), unittype(i), armysize(i), armyexper(i), supply(i)
-		IF armyloc(i) < 0 THEN GOSUB randarm
-		PRINT ".";
-		occupied(armyloc(i)) = i
-		pct! = pct! + .0007 * armysize(i) * costfac(unittype(i))
-	NEXT i
-	FOR i = 1 TO 2: INPUT #1, cash(i): NEXT i
-	FOR i = 1 TO 2: INPUT #1, navysize(i), navyloc(i): NEXT i
-	FOR i = 1 TO 2
-		INPUT #1, airsize(i), airloc(i)
-		chute(who) = 15 * (airsize(who) * (teklev(who, 7) + 1))
-	NEXT i
-		INPUT #1, capcity(1), capcity(2)
-		PRINT "..";
-		CLOSE #1
-	'::::::::::::::::::::::::::::::::::::::LOAD SAVED GAME:::::::::::::::::::::::
-		CASE 2
-		tlx = 0: tly = 12: colour = 6
-		mtx$(0) = "Load Saved Game"
-		colour = 4: GOSUB getsave
+			IF switch = 3 THEN
+				myside = side
+				IF myside < 1 OR myside > 2 THEN myside = 1
+				OPEN "O", 1, "ww2.cfg"
+				a = 0: IF weather > 0 THEN a = 1
+				WRITE #1, myside, noise, difficult, player, turbo!, batwon(1), batwon(2), casualty&(1), casualty&(2), neuter, Mighty, a, pb$, autosave
+				CLOSE #1
+			END IF
 
-		CALL clrbot: PRINT "Loading";
-
-		OPEN "I", 1, file$
-		INPUT #1, scenario$, begin$
-		CLOSE #1
-		IF begin$ <> "1939" THEN begin$ = "1940"
-
-		GOSUB wbase
-		IF _FILEEXISTS(t$) = 0 THEN CALL clrbot: COLOR 14: LOCATE 29, 1: PRINT "FILE NOT FOUND :"; t$; : begin$ = "": TICK 5: CALL clrbot: EXIT SUB
-
-		OPEN "I", 1, file$
-		INPUT #1, scenario$, begin$, a$
-		INPUT #1, mnth, yr, player, side
-		INPUT #1, rflag, mflag, nflag, aflag, weather
-		FOR i = 1 TO 4: INPUT #1, vicflag(i): NEXT i
-
-		FOR i = 1 TO ncity
-		INPUT #1, a$, occupied(i), cityp(i), fort(i): IF i MOD 3 <> 0 THEN PRINT ".";
-		NEXT i
-		FOR i = 1 TO maxarmy
-		INPUT #1, nation(i), armyloc(i), unittype(i), armysize(i), armyexper(i), supply(i), armymove(i)
-		NEXT i
-
-		FOR i = 1 TO 2: INPUT #1, cash(i), cntrl(i), income(i), victory&(i), capcity(i)
-		INPUT #1, navysize(i), navyloc(i), navymove(i), airsize(i), airloc(i), rr(i), tracks(i)
-		NEXT i
-		FOR j = 1 TO 2: FOR k = 1 TO 8: INPUT #1, teklev(j, k): NEXT k: NEXT j
-		CLOSE #1
-
-		FOR k = 1 TO 2
-		chute(who) = 15 * (airsize(who) * (teklev(who, 7) + 1))
-		NEXT k
-	'............................................................................
-		CALL europe(1): CALL clrbot
-		CALL statusbar
-		FOR k = 1 TO 2
-		IF rr(k) > 0 THEN CALL trooper(k, 1)
-		CALL showmove(k)
-		NEXT k
-	':::::::::::::::::::::::::::::::::::::::SAVE:::::::::::::::::::::::::::::::::
-		CASE 3, 6
-		IF switch = 3 THEN GOSUB getsave ELSE file$ = "wwii5.sav"
-		CALL clrbot: PRINT "Saving "; file$;
-		OPEN "O", 1, file$
-		WRITE #1, scenario$, begin$, DATE$
-		WRITE #1, mnth, yr, player, side
-		WRITE #1, rflag, mflag, nflag, aflag, weather
-		FOR i = 1 TO 4: WRITE #1, vicflag(i): NEXT i
-
-		FOR i = 1 TO ncity
-		WRITE #1, city$(i), occupied(i), cityp(i), fort(i): IF i MOD 3 <> 0 THEN PRINT ".";
-		NEXT i
-		FOR i = 1 TO maxarmy
-		WRITE #1, nation(i), armyloc(i), unittype(i), armysize(i), armyexper(i), supply(i), armymove(i)
-		NEXT i
-
-		FOR i = 1 TO 2: WRITE #1, cash(i), cntrl(i), income(i), victory&(i), capcity(i)
-		WRITE #1, navysize(i), navyloc(i), navymove(i), airsize(i), airloc(i), rr(i), tracks(i)
-		NEXT i
-		FOR j = 1 TO 2: FOR k = 1 TO 8: WRITE #1, teklev(j, k): NEXT k: NEXT j
-		CLOSE #1
-		
-		IF switch = 3 THEN
-		myside = side
-		IF myside < 1 OR myside > 2 THEN myside = 1
-		OPEN "O", 1, "ww2.cfg"
-		a = 0: IF weather > 0 THEN a = 1
-		WRITE #1, myside, noise, difficult, player, turbo!, batwon(1), batwon(2), casualty&(1), casualty&(2), neuter, Mighty, a, pb$, autosave
-		CLOSE #1
-		END IF
-
-		CALL europe(0)
-		CALL statusbar
-		CALL clrbot
-		PRINT file$; " FILE SAVED"; : TICK -2: CALL clrbot
+			CALL europe(0)
+			CALL statusbar
+			CALL clrbot
+			PRINT file$; " FILE SAVED"; : TICK -2
+			CALL clrbot
 	END SELECT
 	EXIT SUB
-	':::::::::::::::::::::::::::::::::: BASE Conditions :::::::::::::::::::::::::
-	wbase:
-		OPEN "I", 1, "ww2base.ini"
-		FOR i = 0 TO 2: INPUT #1, force$(i): NEXT i
-		FOR i = 1 TO 12: INPUT #1, mnth$(i): NEXT i
-		FOR k = 1 TO 8: INPUT #1, tname$(k): NEXT k
-		FOR k = 1 TO 5: INPUT #1, unitkind$(k): NEXT k
-		FOR k = 1 TO 10: INPUT #1, country$(k): NEXT k
-		FOR k = 1 TO 26: INPUT #1, font$(k): NEXT k
-		FOR k = 0 TO 3: INPUT #1, tek$(k): NEXT k
-		FOR k = 1 TO 4: INPUT #1, forecast$(k): NEXT k
-		FOR k = 1 TO 19: INPUT #1, featx(k), featy(k): NEXT k
-		INPUT #1, TCR, TSF
-		FOR k = 1 TO 5
-			INPUT #1, atkfac(k), deffac(k), movfac(k), costfac(k)
-		NEXT k
-		INPUT #1, j
-		FOR k = 1 TO j: INPUT #1, gci(k): NEXT k
-		CLOSE #1
-		PRINT "...";
-	'...........................................map.............................
+
+	wbase: ' BASE Conditions
+	OPEN "I", 1, "ww2base.ini"
+	FOR i = 0 TO 2
+		INPUT #1, force$(i)
+	NEXT i
+	FOR i = 1 TO 12
+		INPUT #1, mnth$(i)
+	NEXT i
+	FOR k = 1 TO 8
+		INPUT #1, tname$(k)
+	NEXT k
+	FOR k = 1 TO 5
+		INPUT #1, unitkind$(k)
+	NEXT k
+	FOR k = 1 TO 10
+		INPUT #1, country$(k)
+	NEXT k
+	FOR k = 1 TO 26
+		INPUT #1, font$(k)
+	NEXT k
+	FOR k = 0 TO 3
+		INPUT #1, tek$(k)
+	NEXT k
+	FOR k = 1 TO 4
+		INPUT #1, forecast$(k)
+	NEXT k
+	FOR k = 1 TO 19
+		INPUT #1, featx(k), featy(k)
+	NEXT k
+	INPUT #1, TCR, TSF
+	FOR k = 1 TO 5
+		INPUT #1, atkfac(k), deffac(k), movfac(k), costfac(k)
+	NEXT k
+	INPUT #1, j
+	FOR k = 1 TO j
+		INPUT #1, gci(k)
+	NEXT k
+	CLOSE #1
+	PRINT "...";
+	' Map
 	' 1=US 2=German 3=UK 4=French 5=Polish 6=Russian 7=Italian 8=Generic Allied
 	' 7th position : shows location of matching text. If > 95 then IS invasion port
-		t$ = "euro1940.dat": IF begin$ = "1939" OR _FILEEXISTS(t$) = 0 THEN t$ = "euro1939.dat"
-		flag = 0
+	t$ = "euro1940.dat"
+	IF begin$ = "1939" OR _FILEEXISTS(t$) = 0 THEN t$ = "euro1939.dat"
+	flag = 0
 	refile:
-		PRINT "...";
-		OPEN "I", 1, t$
-		vptotal = 0
-		FOR k = 1 TO 2: income(k) = 0: cntrl(k) = 0: NEXT k
-		FOR k = 1 TO ncity
-			occupied(k) = 0
+	PRINT "...";
+	OPEN "I", 1, t$
+	vptotal = 0
+	FOR k = 1 TO 2
+		income(k) = 0
+		cntrl(k) = 0
+	NEXT k
+	FOR k = 1 TO ncity
+		occupied(k) = 0
 		IF flag = 0 THEN
 			INPUT #1, i, city$(k), race(k), cityx(k), cityy(k), cityv(k), cityo(k)
 		ELSE
 			INPUT #1, i, city$(k), race(k), cityx(k), cityy(k), cityv(k), cityp(k)
 		END IF
-			vptotal = vptotal + cityv(i)
-			IF cityp(k) > 0 THEN x = cityp(k): cntrl(x) = cntrl(x) + 1: income(x) = income(x) + cityv(i)
-			FOR j = 1 TO 7: INPUT #1, matrix(k, j): NEXT j
-			INPUT #1, fort(k)
-		NEXT k
-		CLOSE #1
-		IF switch = 5 THEN RETURN
-		IF flag = 0 THEN flag = 1: t$ = "euro" + begin$ + ".dat": GOTO refile
-		RETURN
-	'...................................menu of options.........................
-	getyr:
+		vptotal = vptotal + cityv(i)
+		IF cityp(k) > 0 THEN x = cityp(k): cntrl(x) = cntrl(x) + 1: income(x) = income(x) + cityv(i)
+		FOR j = 1 TO 7
+			INPUT #1, matrix(k, j)
+		NEXT j
+		INPUT #1, fort(k)
+	NEXT k
+	CLOSE #1
+	IF switch = 5 THEN RETURN
+	IF flag = 0 THEN flag = 1: t$ = "euro" + begin$ + ".dat": GOTO refile
+	RETURN
+
+	getyr: ' Menu of Options
 	' Get List of Scenario Files
 	DIM DirList$(21)
 	
@@ -5448,11 +5500,10 @@ SUB filer (switch)
 	' Read the list of scenario files
 	OPEN TmpFile$ FOR INPUT AS #ff%
 	DO WHILE NOT EOF(ff%) AND filenum% < 21
-	filenum% = filenum% + 1
-	LINE INPUT #ff%, DirList$(filenum%)
+		filenum% = filenum% + 1
+		LINE INPUT #ff%, DirList$(filenum%)
 	LOOP
 	CLOSE #ff%
-
 	
 	size = 0
 
@@ -5476,12 +5527,15 @@ SUB filer (switch)
 	begin$ = mtx$(choose)
 	IF LEN(begin$) < 1 THEN choose = -1: EXIT SUB
 	RETURN
+
 	getsave:
-		CLS
-		LINE (0, 0)-(639, 449), 8, BF
-		size = 5 + (switch = 3)
-		FOR k = 1 TO 21: mtx$(k) = "": NEXT k
-		FOR k = 1 TO size
+	CLS
+	LINE (0, 0)-(639, 449), 8, BF
+	size = 5 + (switch = 3)
+	FOR k = 1 TO 21
+		mtx$(k) = ""
+	NEXT k
+	FOR k = 1 TO size
 		mtx$(k) = STR$(k) + " unused"
 		t$ = "wwii" + LTRIM$(STR$(k)) + ".sav"
 		IF _FILEEXISTS(t$) THEN
@@ -5492,55 +5546,61 @@ SUB filer (switch)
 			mtx$(k) = STR$(k) + "  " + LEFT$(mtx$(0), 6) + RIGHT$(mtx$(0), 2) + " " + mtx$(21) + "=>" + LTRIM$(STR$(y1))
 			IF k = 5 THEN mtx$(k) = STR$(k) + "  AUTOSAVE"
 			CLOSE #1
-			END IF
-		NEXT k
-		mtx$(0) = "Saved Games"
-		tlx = 21: tly = 7
-		CALL menu(11)
-		IF choose < 0 THEN EXIT SUB
-		file$ = "wwii" + LTRIM$(STR$(choose)) + ".sav"
-		RETURN
-	randarm:
-		IF RND > .5 THEN
-			armyloc(i) = ABS(armyloc(i))
-		ELSE
-			occupied(ABS(armyloc(i))) = 0: nation(i) = 0
-			armyloc(i) = 0: armysize(i) = 0
 		END IF
+	NEXT k
+	mtx$(0) = "Saved Games"
+	tlx = 21: tly = 7
+	CALL menu(11)
+	IF choose < 0 THEN EXIT SUB
+	file$ = "wwii" + LTRIM$(STR$(choose)) + ".sav"
+	RETURN
+
+	randarm:
+	IF RND > .5 THEN
+		armyloc(i) = ABS(armyloc(i))
+	ELSE
+		occupied(ABS(armyloc(i))) = 0: nation(i) = 0
+		armyloc(i) = 0: armysize(i) = 0
+	END IF
 	RETURN
 END SUB
 
 SUB fortify (target)
 	tlx = 67: tly = 2
-	who = side: CALL starfin(star, fin, who)
+	who = side
+	CALL starfin(star, fin, who)
 	size = 0
 	FOR i = 1 TO 56
-	x = occupied(i)
-	IF x >= star AND x <= fin AND fort(i) < 3 THEN
+		x = occupied(i)
+		IF x >= star AND x <= fin AND fort(i) < 3 THEN
 			IF size < 19 THEN size = size + 1
 			mtx$(size) = city$(armyloc(x))
 			array(size) = x
-	END IF
+		END IF
 	NEXT i
 	IF size = 0 THEN CALL clrbot: PRINT "No cities eligible to fortify"; : EXIT SUB
 	CALL bubble((size))
 	mtx$(0) = "Fortify"
-		choose = 31
-		CALL menu(5): CALL clrrite
-		IF choose < 0 GOTO nocity
-		target = armyloc(array(choose))
-		CALL occupy(target): x = occupied(target): IF x < 0 GOTO nocity
-		IF fort(target) > 2 THEN CALL clrbot: PRINT city$(target); " at MAXIMUM fortification level of 3"; : CALL TICK(4): GOTO nocity
-		cost = 200 - 5 * teklev(who, 8)
-		IF cash(side) < cost THEN CALL clrbot: PRINT "Fortifications for "; city$(target); " cost "; cost; " and you only have "; cash(side); : CALL TICK(4): GOTO nocity
-		COLOR 3
-		fort(target) = fort(target) + 1
-		cash(side) = cash(side) - cost
-		CALL clrbot: PRINT city$(target); " fortifications increased to "; fort(target);
-		CALL icon(target, 0, 6)
-		CALL showcity(target)
-		IF armymove(x) > 0 THEN CALL icon(armyloc(x), armymove(x), 5)
-		armymove(x) = -1
+	choose = 31
+	CALL menu(5)
+	CALL clrrite
+	IF choose < 0 GOTO nocity
+	target = armyloc(array(choose))
+	CALL occupy(target)
+	x = occupied(target)
+	IF x < 0 GOTO nocity
+	IF fort(target) > 2 THEN CALL clrbot: PRINT city$(target); " at MAXIMUM fortification level of 3"; : CALL TICK(4): GOTO nocity
+	cost = 200 - 5 * teklev(who, 8)
+	IF cash(side) < cost THEN CALL clrbot: PRINT "Fortifications for "; city$(target); " cost "; cost; " and you only have "; cash(side); : CALL TICK(4): GOTO nocity
+	COLOR 3
+	fort(target) = fort(target) + 1
+	cash(side) = cash(side) - cost
+	CALL clrbot
+	PRINT city$(target); " fortifications increased to "; fort(target);
+	CALL icon(target, 0, 6)
+	CALL showcity(target)
+	IF armymove(x) > 0 THEN CALL icon(armyloc(x), armymove(x), 5)
+	armymove(x) = -1
 	nocity:
 END SUB
 
@@ -5556,40 +5616,40 @@ END SUB
 SUB maptext
 	FOR k = 1 TO ncity
 		FOR j = 1 TO LEN(city$(k))
-		a = cityx(k) + 6 * (j - 4) - 3
-		c = ASC(MID$(UCASE$(city$(k)), j, 1)) - 64
-		IF a > 527 GOTO nextc
-		SELECT CASE k
-			CASE 1
-			x = a - 14: y = cityy(k) - 15
-			CASE 6
-			x = a - 6: y = cityy(k) - 10
-			CASE 7
-			x = a - 20: y = cityy(k) - 5
-			CASE 10
-			x = a - 10: y = cityy(k) + 15
-			CASE 11, 28
-			x = a - 20: y = cityy(k) - 10
-			CASE 17, 29
-			x = a + 26: y = cityy(k) + 6
-			CASE 9, 32
-			x = a - 2: y = cityy(k) + 16
-			CASE 14, 23, 37, 38, 44, 49
-			x = a - 20: y = cityy(k) + 6
-			CASE 27
-			x = a + 8: y = cityy(k) + 12
-			CASE 20, 39, 54
-			x = a + 10: y = cityy(k) + 25
-			CASE 45, 46, 53
-			x = a - 6: y = cityy(k) - 10
-			CASE ELSE
-			x = a: y = cityy(k) + 12
-		END SELECT
+			a = cityx(k) + 6 * (j - 4) - 3
+			c = ASC(MID$(UCASE$(city$(k)), j, 1)) - 64
+			IF a > 527 GOTO nextc
+			SELECT CASE k
+				CASE 1
+				x = a - 14: y = cityy(k) - 15
+				CASE 6
+				x = a - 6: y = cityy(k) - 10
+				CASE 7
+				x = a - 20: y = cityy(k) - 5
+				CASE 10
+				x = a - 10: y = cityy(k) + 15
+				CASE 11, 28
+				x = a - 20: y = cityy(k) - 10
+				CASE 17, 29
+				x = a + 26: y = cityy(k) + 6
+				CASE 9, 32
+				x = a - 2: y = cityy(k) + 16
+				CASE 14, 23, 37, 38, 44, 49
+				x = a - 20: y = cityy(k) + 6
+				CASE 27
+				x = a + 8: y = cityy(k) + 12
+				CASE 20, 39, 54
+				x = a + 10: y = cityy(k) + 25
+				CASE 45, 46, 53
+				x = a - 6: y = cityy(k) - 10
+				CASE ELSE
+				x = a: y = cityy(k) + 12
+			END SELECT
 
-		z = POINT(x, y)
-		PSET (x, y), z
-		IF matrix(k, 7) < 90 THEN DRAW "S4C0" ELSE DRAW "C10"
-		IF c > 0 AND c < 27 THEN DRAW font$(c)
+			z = POINT(x, y)
+			PSET (x, y), z
+			IF matrix(k, 7) < 90 THEN DRAW "S4C0" ELSE DRAW "C10"
+			IF c > 0 AND c < 27 THEN DRAW font$(c)
 		NEXT j
 	nextc:
 	NEXT k
