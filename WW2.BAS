@@ -6072,95 +6072,103 @@ SUB title2
 END SUB
 
 SUB victor
-	x = 0: FOR j = 1 TO 30: IF armyloc(j) > 0 THEN x = x + armysize(j)
+	x = 0
+	FOR j = 1 TO 30
+		IF armyloc(j) > 0 THEN x = x + armysize(j)
 	NEXT j
-	y = 0: FOR j = 31 TO maxarmy: IF armyloc(j) > 0 THEN y = y + armysize(j)
+	y = 0
+	FOR j = 31 TO maxarmy
+		IF armyloc(j) > 0 THEN y = y + armysize(j)
 	NEXT j
 
-	CALL clrbot: COLOR 14
+	CALL clrbot
+	COLOR 14
 	IF vicflag(2) > 0 AND yr >= vicflag(2) AND vicflag(1) - mnth < 3 THEN
 		CALL image2("Time almost expired (" + LEFT$(mnth$(vicflag(1)), 3) + "," + STR$(vicflag(2)) + ")", 4)
 	END IF
 	FOR i = 1 TO 2
-	IF (i = 1 AND y = 0) OR (i = 2 AND x = 0) THEN j = 7: victory&(i) = victory&(i) * 1.1: GOTO finis
+		IF (i = 1 AND y = 0) OR (i = 2 AND x = 0) THEN j = 7: victory&(i) = victory&(i) * 1.1: GOTO finis
 
-	IF yr >= vicflag(2) AND mnth >= vicflag(1) AND vicflag(2) > 0 THEN j = 2: GOTO finis
-	IF cntrl(i) >= vicflag(3) AND vicflag(3) > 0 THEN j = 3: GOTO finis
+		IF yr >= vicflag(2) AND mnth >= vicflag(1) AND vicflag(2) > 0 THEN j = 2: GOTO finis
+		IF cntrl(i) >= vicflag(3) AND vicflag(3) > 0 THEN j = 3: GOTO finis
 
-	CALL clrbot: COLOR 14
-	IF vicflag(3) > 0 AND cntrl(i) >= .9 * vicflag(3) THEN
-		CALL image2(force$(i) + " side almost has" + STR$(vicflag(3)) + " cities", 4)
-	END IF
-	IF vicflag(4) > 0 AND capcity(3 - i) = 0 AND capcity(i) > 0 THEN j = 4: GOTO finis
-
-	GOTO stale
-
-	finis:
-	SELECT CASE j
-		CASE IS < 3
-		a$ = "TIME EXPIRED"
-		IF victory&(3 - i) > victory&(i) THEN i = 3 - i
-		CASE 3
-		a$ = STR$(vicflag(3)) + " CITIES CONTROLLED"
-		CASE 4
-		a$ = "CAPITAL CAPTURED"
-		CASE 7
-		a$ = "ENEMY ANNIHILATED"
-	END SELECT
-	c = 1: IF i = 2 THEN c = 7
-	PALETTE 1, 60
-	LINE (70, 140)-(485, 265), 0, BF
-	LINE (50, 120)-(465, 250), c, BF
-	LINE (50, 120)-(465, 250), 4, B
-	COLOR 14
-	t$ = force$(i) + " SIDE IS WINNING"
-	CALL center(10, t$)
-
-	COLOR 15
-	t$ = "END GAME VICTORY CONDITION" + STR$(j - 1) + " REACHED"
-	CALL center(12, t$)
-	CALL center(14, a$)
-	CALL statusbar
-
-	mtx$(0) = "End Game"
-	mtx$(1) = "Yes"
-	mtx$(2) = "No-Override"
-	size = 2: colour = 7
-	tlx = 67: tly = 18
-	hilite = 14
-	CALL menu(0)
-
-	IF choose = 2 THEN
-		vicflag(j) = vicflag(j) + 1: IF j = 4 THEN vicflag(j) = 0
-		IF player = 1 THEN
-			victory&(side) = .7 * victory&(side)
-			x = .3 * victory&(side)
-			CALL image2("Victory Points Lost:" + STR$(x), 5)
+		CALL clrbot
+		COLOR 14
+		IF vicflag(3) > 0 AND cntrl(i) >= .9 * vicflag(3) THEN
+			CALL image2(force$(i) + " side almost has" + STR$(vicflag(3)) + " cities", 4)
 		END IF
+		IF vicflag(4) > 0 AND capcity(3 - i) = 0 AND capcity(i) > 0 THEN j = 4: GOTO finis
+
+		GOTO stale
+
+		finis:
+		SELECT CASE j
+			CASE IS < 3
+				a$ = "TIME EXPIRED"
+				IF victory&(3 - i) > victory&(i) THEN i = 3 - i
+			CASE 3
+				a$ = STR$(vicflag(3)) + " CITIES CONTROLLED"
+			CASE 4
+				a$ = "CAPITAL CAPTURED"
+			CASE 7
+				a$ = "ENEMY ANNIHILATED"
+		END SELECT
+		c = 1
+		IF i = 2 THEN c = 7
+		PALETTE 1, 60
+		LINE (70, 140)-(485, 265), 0, BF
+		LINE (50, 120)-(465, 250), c, BF
+		LINE (50, 120)-(465, 250), 4, B
+		COLOR 14
+		t$ = force$(i) + " SIDE IS WINNING"
+		CALL center(10, t$)
+
+		COLOR 15
+		t$ = "END GAME VICTORY CONDITION" + STR$(j - 1) + " REACHED"
+		CALL center(12, t$)
+		CALL center(14, a$)
+		CALL statusbar
+
+		mtx$(0) = "End Game"
+		mtx$(1) = "Yes"
+		mtx$(2) = "No-Override"
+		size = 2: colour = 7
+		tlx = 67: tly = 18
+		hilite = 14
+		CALL menu(0)
+
+		IF choose = 2 THEN
+			vicflag(j) = vicflag(j) + 1
+			IF j = 4 THEN vicflag(j) = 0
+			IF player = 1 THEN
+				victory&(side) = .7 * victory&(side)
+				x = .3 * victory&(side)
+				CALL image2("Victory Points Lost:" + STR$(x), 5)
+			END IF
+			SCREEN 9
+			CALL europe(0)
+			EXIT SUB
+		END IF
+
+
+		LINE (0, 0)-(639, 479), 4, BF
+		s = 2
+		IF i = 1 THEN
+			FOR k = 1 TO 30
+				IF armyloc(k) > 0 THEN s = nation(k): GOTO boast
+			NEXT k
+		END IF
+		boast:
 		SCREEN 9
-		CALL europe(0)
-		EXIT SUB
-	END IF
-
-
-	LINE (0, 0)-(639, 479), 4, BF
-	s = 2
-	IF i = 1 THEN
-		FOR k = 1 TO 30
-		IF armyloc(k) > 0 THEN s = nation(k): GOTO boast
-		NEXT k
-	END IF
-	boast:
-	SCREEN 9
-	'             bonus for triggering end conditions (other than time)
-	IF j > 2 THEN
-		victory&(i) = 1.1 * victory&(i)
-		IF vicflag(2) >= yr THEN
-			IF vicflag(1) > mnth OR vicflag(2) > yr THEN
-				victory&(i) = victory&(i) + 120 * (vicflag(2) - yr) + 10 * (vicflag(1) - mnth)
+		'             bonus for triggering end conditions (other than time)
+		IF j > 2 THEN
+			victory&(i) = 1.1 * victory&(i)
+			IF vicflag(2) >= yr THEN
+				IF vicflag(1) > mnth OR vicflag(2) > yr THEN
+					victory&(i) = victory&(i) + 120 * (vicflag(2) - yr) + 10 * (vicflag(1) - mnth)
+				END IF
 			END IF
 		END IF
-	END IF
 		IF weather > 0 THEN weather = 1
 		SCREEN 12
 		FOR k = 1 TO 5
@@ -6178,7 +6186,7 @@ SUB victor
 		LINE (220, 230)-(410, 260), 0, BF
 		LINE (220, 230)-(410, 260), 14, B
 		COLOR 14: LOCATE 16, 40 - .5 * LEN(a$): PRINT a$
-	CALL gloat(i, 1)
+		CALL gloat(i, 1)
 		TICK -1
 		IF pbm = 0 THEN
 			CALL maxx(0): pcode = 1
@@ -6193,18 +6201,22 @@ SUB victor
 		END IF
 		EXIT SUB
 	stale:
-		NEXT i
+	NEXT i
 END SUB
 
 SUB void (a, y)
-  y = 0: IF a > 56 THEN EXIT SUB
+	y = 0
+	IF a > 56 THEN EXIT SUB
 	FOR j = 1 TO 6
-	x = matrix(a, j): IF x = 0 THEN EXIT SUB
-	IF cityp(x) = side AND occupied(x) > 0 THEN y = y + armysize(occupied(x))
+		x = matrix(a, j)
+		IF x = 0 THEN EXIT SUB
+		IF cityp(x) = side AND occupied(x) > 0 THEN y = y + armysize(occupied(x))
 
-		FOR k = 1 TO 6: m = matrix(x, k): IF m = 0 OR m = a GOTO tally4
-		IF cityp(m) = side AND occupied(m) > 0 THEN y = y + .1 * armysize(occupied(m))
-	tally4:
+		FOR k = 1 TO 6
+			m = matrix(x, k)
+			IF m = 0 OR m = a GOTO tally4
+			IF cityp(m) = side AND occupied(m) > 0 THEN y = y + .1 * armysize(occupied(m))
+		tally4:
 		NEXT k
 	NEXT j
 END SUB
