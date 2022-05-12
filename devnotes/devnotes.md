@@ -1,3 +1,10 @@
+1. Remove code related to sound blaster and MIDIs from main application.
+1. Remove `EGACW.SC1` and `EGACW.SC2`, these are not called anywhere.
+1. Remove a number of files related to PDS 7.1/QB but no longer useful for QB64: `QBX.INI`, `QBX.BI`, `QBX.QLB`, `WW2.LNK`, `WW2.MAK`, `WW2MAKE.BTM`
+1. Remove a number of files related to sound support: `CT-VOICE.DRV`, `CTMIDI.DRV`, `CTVDSK.DRV`, `GO.BAT`, `PLANY.EXE`, `PLAYMIDI.EXE`, `SBMIDI.EXE`, `SBSIM.COM`, `SNDCVT.EXE`, `SOUND.DOC`, `SOUND.EXE`, and `WW2SND.CFG`
+    - A number of these provided support for Soundblaster Sound Cards, which is now a fairly ancient technology.
+    - Some provided methods of playing various sound effects. I have retained the `.VOC` files that contain the sounds but removed the players as they do not work with Windows. At some juncture I may integrate sound players back into the game with more modern functionality.
+    - Sound is still available, probably what many remember and what is used in VGA Civil War Strategy (e.g., `PLAY` statements), but is not quite as varied or smooth.
 1. Update `GO.BAT`, removing some unsupported characters and outdated information.
 1. Remove some unneeded sound related files.
 1. QB64 doesn't support the `DIR$` statement from PDS 7.1, using `SHELL` to save list of files to temporary file then reading and displaying in WW2 Editor.

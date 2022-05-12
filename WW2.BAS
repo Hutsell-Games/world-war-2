@@ -70,7 +70,6 @@ DECLARE SUB showtek (who%, k%)
 DECLARE SUB smarts ()
 DECLARE SUB showcity (index%)
 DECLARE SUB snapshot (x%, y%, flag%)
-DECLARE SUB sndblst (file$, flag%)
 DECLARE SUB sndfx (flag%)
 DECLARE SUB starfin (star%, fin%, who%)
 DECLARE SUB statusbar ()
@@ -167,7 +166,7 @@ COMMON SHARED choose%, tlx%, tly%, size%, mtx$(), colour%, hilite%
 COMMON SHARED cityx(), cityy(), cityv(), cityp(), city$(), filel, country$()
 COMMON SHARED cash(), cntrl(), matrix(), income(), anima(), rflag
 COMMON SHARED nflag, bold, f3key, turbo!, rr(), tname$(), rusky, autosave
-COMMON SHARED image(), force$(), armyloc(), player, aggress!, plany$
+COMMON SHARED image(), force$(), armyloc(), player, aggress!
 COMMON SHARED armysize(), unittype(), armyexper(), supply(), mnth$()
 COMMON SHARED rcity(), vicflag(), tracks(), batwon(), cityo()
 COMMON SHARED armymove(), mnth, yr, array(), mflag, side, sblast$, race()
@@ -229,16 +228,6 @@ CALL filer(0)
 
 
 IF COMMAND$ <> "" THEN
-	sblast$ = UCASE$(COMMAND$)
-	IF sblast$ = "S" THEN
-	OPEN "I", 1, "x.cfg"
-		INPUT #1, IRQ, DMA, PORT
-		IF IRQ = 0 THEN IRQ = 7
-		IF DMA = 0 THEN DMA = 544
-		IF PORT = 0 THEN PORT = 1
-		plany$ = " -i:" + LTRIM$(STR$(IRQ)) + " -d:" + LTRIM$(STR$(DMA)) + " -p:" + LTRIM$(STR$(PORT))
-	CLOSE #1
-	END IF
 	CALL sndfx(8)
 END IF
 TICK -1
@@ -1750,7 +1739,7 @@ SUB icon (from, dest, kind)
 		LINE (x - 7, y - 5)-(x + 7, y + 5), k, BF
 		TICK .01
 		IF noise > 0 THEN
-			IF sblast$ = "" THEN SOUND 244, .1: SOUND 388, .1 ELSE IF k = 0 THEN CALL sndblst("ding.voc", 0)
+			SOUND 244, .1: SOUND 388, .1 ' ding.voc
 		END IF
 
 		IF kind = 12 THEN
@@ -2560,27 +2549,6 @@ END SUB
 
 SUB sndfx (flag%)
 	IF noise > 0 THEN
-		IF sblast$ <> "" THEN
-			SELECT CASE flag
-			CASE 1, 6
-			t$ = "ding.voc"
-			CASE 2
-			t$ = "charge.voc"
-			CASE 3
-			t$ = "sunk.voc"
-			CASE 4
-			t$ = "ships.voc"
-			CASE 5
-			t$ = "engine.voc"
-			CASE 7
-			t$ = "drums2.voc"
-			CASE 8
-			t$ = "gun.voc"
-			CASE 9
-			t$ = "battle.voc"
-			END SELECT
-			CALL sndblst(t$, 0)
-		ELSE
 			SELECT CASE flag
 			CASE 1
 			SOUND 2200, .5: SOUND 2900, .7
@@ -2595,7 +2563,6 @@ SUB sndfx (flag%)
 			CASE ELSE
 			SOUND 999, .7
 			END SELECT
-		END IF
 	END IF
 END SUB
 
@@ -3346,7 +3313,7 @@ SUB airforce (who, chx)
 			a$ = force$(who) + " AIRBASE moved to " + city$(x1)
 			CALL image2(a$, 5)
 			CALL news(a$)
-			IF sblast$ <> "" THEN CALL sndblst("engine.voc", 0)
+			' engine.voc
 			x = cityx(airloc(who)): y = cityy(airloc(who))
 			CALL citygraf(airloc(who), c)
 			LINE (x, y - 6)-(x + 8, y - 14), c, BF
@@ -3961,32 +3928,19 @@ SUB gloat (x, y)
 	IF noise > 1 THEN
 		SELECT CASE x
 			CASE 1
-				IF sblast$ = "M" THEN
-					CALL putflag(x, z)
-					IF z <> 4 THEN
-						SHELL "playmidi america.mid /FMT:General /Q"
-					ELSE
-						SHELL "playmidi france.mid /FMT:General /Q"
-					END IF
-				ELSE
-					'It's A Long Way to Tipperary
-					PLAY "MSMFt145o3c8d8e-4e-4..e-16f8g8a-4o4c4.P8o4c8o3b-8a-4f2a-4e-2P4"
-					IF y > 0 THEN
-						PLAY "MBo3c8d8e-4e-4..e-16f8g8a-4o4c4.P8o3a-8b-8o4c4o3a-4o4c4o3b4b-2P4"
-						PLAY "MBo3a-8b-8o4c4c4c8.c16o3b-8a-8b-2a-4a-8b-8o4c4o3a-2b-4a-2."
-					END IF
+				'It's A Long Way to Tipperary
+				PLAY "MSMFt145o3c8d8e-4e-4..e-16f8g8a-4o4c4.P8o4c8o3b-8a-4f2a-4e-2P4"
+				IF y > 0 THEN
+					PLAY "MBo3c8d8e-4e-4..e-16f8g8a-4o4c4.P8o3a-8b-8o4c4o3a-4o4c4o3b4b-2P4"
+					PLAY "MBo3a-8b-8o4c4c4c8.c16o3b-8a-8b-2a-4a-8b-8o4c4o3a-2b-4a-2."
 				END IF
 			CASE 2
-			IF sblast$ = "M" THEN
-				SHELL "playmidi wagner.mid /FMT:General /Q"
-			ELSE
 				'Valkyries
 				PLAY "mFMSt160o1a8.e16a8o2c4.o1a4."
 				PLAY "o2c8.o1a16o2c8e4.c4."
 				PLAY "e8.c16e8g4.o1g4.o2c8.o1g16o2c8e2"
-				END IF
-			END SELECT
-		END IF
+		END SELECT
+	END IF
 END SUB
 
 SUB hangar
@@ -6108,19 +6062,6 @@ SUB showtek (who, k)
 	PUT (565, 100), graphic, PSET
 	LOCATE 12, 70: PRINT a$
 	LOCATE 6, 69: PRINT "Technology"
-END SUB
-
-SUB sndblst (file$, flag%)
-	' ON LOCAL ERROR GOTO nosound
-	IF _FILEEXISTS(file$) = 0 THEN EXIT SUB
-	IF sblast$ = "" OR noise = 0 THEN EXIT SUB
-	IF sblast$ = "Z" THEN SHELL "sound " + file$ + " 5 1 8": EXIT SUB
-	SHELL "plany.exe " + file$ + plany$
-	nosound:
-	RESUME sounder
-	sounder:
-	CALL clrbot: PRINT "Sound Driver Error "; file$; : TICK 1
-	ON ERROR GOTO 0
 END SUB
 
 SUB starfin (star, fin, who)
