@@ -200,7 +200,7 @@ pb$ = CURDIR$
 SCREEN 12
 s = 1
 DEF SEG = VARSEG(graphic(1))
-BLOAD "w2icon.vga", VARPTR(graphic(1))
+	BLOAD "w2icon.vga", VARPTR(graphic(1))
 DEF SEG
 PUT (100, 100), graphic, PSET
 GET (101, 101)-(115, 114), usai
@@ -212,7 +212,7 @@ GET (123, 115)-(137, 128), rusi
 GET (117, 129)-(139, 142), alship
 GET (117, 143)-(139, 156), axship
 DEF SEG = VARSEG(graphic(1))
-BLOAD "w2xtra.vga", VARPTR(graphic(1))
+	BLOAD "w2xtra.vga", VARPTR(graphic(1))
 DEF SEG
 PUT (100, 100), graphic, PSET
 GET (101, 101)-(115, 112), para
@@ -261,53 +261,60 @@ SELECT CASE choose
 	CASE 3
 		IF mtx$(3) = "-" GOTO newg
 		pbm = 1: player = 2
-			GOSUB clrscrn
-			LOCATE 1, 30: PRINT "PBM Data Update"
-			CALL filer(5)
-			ON ERROR GOTO nodisk
-			FILES pb$ + "pbm"
-			ON ERROR GOTO 0
-			t$ = pb$ + "pbm": a$ = t$ + ".old"
-			SHELL "copy " + t$ + " " + a$
-			OPEN "I", 1, pb$ + "pbm"
-			INPUT #1, k
-			IF k > 0 THEN
-				FOR j = 1 TO k
-					INPUT #1, mtx$(j)
-				NEXT j
-				SCREEN 12
-				CLS
-				COLOR 15
-				LINE (0, 50)-(500, 449), 4, BF: LINE (0, 0)-(500, 50), 15, BF
-				LINE (0, 50)-(500, 449), 15, B
-				LOCATE 2, 27: PRINT " N E W S "
-				FOR j = 1 TO k
+		GOSUB clrscrn
+		LOCATE 1, 30: PRINT "PBM Data Update"
+		CALL filer(5)
+		ON ERROR GOTO nodisk
+		FILES pb$ + "pbm"
+		ON ERROR GOTO 0
+		t$ = pb$ + "pbm": a$ = t$ + ".old"
+		SHELL "copy " + t$ + " " + a$
+		OPEN "I", 1, pb$ + "pbm"
+		INPUT #1, k
+		IF k > 0 THEN
+			FOR j = 1 TO k
+				INPUT #1, mtx$(j)
+			NEXT j
+			SCREEN 12
+			CLS
+			COLOR 15
+			LINE (0, 50)-(500, 449), 4, BF: LINE (0, 0)-(500, 50), 15, BF
+			LINE (0, 50)-(500, 449), 15, B
+			LOCATE 2, 27: PRINT " N E W S "
+			FOR j = 1 TO k
 				LOCATE j + 4, 5: PRINT mtx$(j)
-				NEXT j
-				PAINT (33, 64), 4, 15
-			END IF
-			INPUT #1, begin$, x, mnth, yr, side, weather
-			IF k > 0 THEN
-				COLOR 15: LOCATE 2, 11: PRINT force$(side)
-				LOCATE 2, 46: PRINT mnth$(mnth); ","; yr
-			END IF
-			DO WHILE INKEY$ = "": LOOP
-			IF LEFT$(begin$, 2) = "19" GOTO okpbm
-			CALL pbmview: END
-okpbm:
-			FOR i = 1 TO 4: INPUT #1, vicflag(i): NEXT i
-			FOR i = 1 TO ncity
-				INPUT #1, a$, occupied(i), cityp(i), fort(i)
-			NEXT i
-			FOR i = 1 TO maxarmy
-				INPUT #1, nation(i), armyloc(i), unittype(i), armysize(i), armyexper(i), supply(i), armymove(i)
-			NEXT i
-			FOR i = 1 TO 2: INPUT #1, cash(i), cntrl(i), income(i), victory&(i), capcity(i)
+			NEXT j
+			PAINT (33, 64), 4, 15
+		END IF
+		INPUT #1, begin$, x, mnth, yr, side, weather
+		IF k > 0 THEN
+			COLOR 15: LOCATE 2, 11: PRINT force$(side)
+			LOCATE 2, 46: PRINT mnth$(mnth); ","; yr
+		END IF
+		DO WHILE INKEY$ = "": LOOP
+		IF LEFT$(begin$, 2) = "19" GOTO okpbm
+		CALL pbmview: END
+		okpbm: ' Line Label
+		FOR i = 1 TO 4
+			INPUT #1, vicflag(i)
+		NEXT i
+		FOR i = 1 TO ncity
+			INPUT #1, a$, occupied(i), cityp(i), fort(i)
+		NEXT i
+		FOR i = 1 TO maxarmy
+			INPUT #1, nation(i), armyloc(i), unittype(i), armysize(i), armyexper(i), supply(i), armymove(i)
+		NEXT i
+		FOR i = 1 TO 2
+			INPUT #1, cash(i), cntrl(i), income(i), victory&(i), capcity(i)
 			INPUT #1, navysize(i), navyloc(i), navymove(i), airsize(i), airloc(i), rr(i), tracks(i)
-			NEXT i
-			FOR j = 1 TO 2: FOR k = 1 TO 8: INPUT #1, teklev(j, k): NEXT k: NEXT j
-			CLOSE #1
-	IF side = 1 THEN
+		NEXT i
+		FOR j = 1 TO 2
+			FOR k = 1 TO 8
+				INPUT #1, teklev(j, k)
+			NEXT k
+		NEXT j
+		CLOSE #1
+		IF side = 1 THEN
 			CLS
 			LINE (0, 0)-(639, 449), 1, BF
 			LINE (100, 200)-(500, 300), 4, BF
@@ -322,8 +329,8 @@ okpbm:
 			a = RND(-x)
 			CALL tupdate
 			GOTO newun
-	END IF
-			s = 31: GOTO newun
+		END IF
+		s = 31: GOTO newun
 	CASE 4
 		CLS : END
 	CASE ELSE
@@ -331,13 +338,17 @@ END SELECT
 
 newgame:
 GOSUB init
-CALL filer(4): IF begin$ = "" GOTO newg
+CALL filer(4)
+IF begin$ = "" GOTO newg
 vptotal = vptotal + 50 * difficult
-filel = 1: bold = 1: IF RND > .5 THEN bold = 1 + INT(5 * RND)
+filel = 1
+bold = 1
+IF RND > .5 THEN bold = 1 + INT(5 * RND)
 IF difficult > 3 AND bold = 1 THEN bold = 2 + INT(4 * RND)
 
 SCREEN 12
-CLS : CALL europe(1)
+CLS
+CALL europe(1)
 IF cash(side) < 100 THEN chosit = 23
 GOTO menu0
 '==========================================================================
@@ -352,24 +363,26 @@ IF pbm > 0 THEN GOTO emess ELSE IF autosave > 0 THEN CALL filer(6)
 newun:
 
 FOR i = 1 TO 2
-cntrl(i) = 0
-income(i) = 0
-IF cash(i) > 30000 THEN cash(i) = 30000
-IF cash(i) < 0 THEN cash(i) = 0
+	cntrl(i) = 0
+	income(i) = 0
+	IF cash(i) > 30000 THEN cash(i) = 30000
+	IF cash(i) < 0 THEN cash(i) = 0
 NEXT i
 IF player = 1 THEN income(3 - side) = income(3 - side) + 40 * difficult
 FOR i = 1 TO ncity
-IF cityp(i) > 0 THEN x = cityp(i): cntrl(x) = cntrl(x) + 1: income(x) = income(x) + cityv(i)
+	IF cityp(i) > 0 THEN x = cityp(i): cntrl(x) = cntrl(x) + 1: income(x) = income(x) + cityv(i)
 NEXT i
 
 FOR i = s TO maxarmy
-armymove(i) = 0
-IF unittype(i) = 5 THEN armymove(i) = -1
+	armymove(i) = 0
+	IF unittype(i) = 5 THEN armymove(i) = -1
 NEXT i
 vptotal = income(1) + income(2)
 
-FOR i = 1 TO 2: navymove(i) = 0: IF capcity(i) > 0 THEN income(i) = income(i) + 100
-cash(i) = cash(i) + income(i)
+FOR i = 1 TO 2
+	navymove(i) = 0
+	IF capcity(i) > 0 THEN income(i) = income(i) + 100
+	cash(i) = cash(i) + income(i)
 NEXT i
 '............................ Battle of the Atlantic .....................
 x = navyloc(2)
