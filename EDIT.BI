@@ -47,7 +47,7 @@ COMMON SHARED nflag, bold, f3key, turbo!, rr(), tname$(), rusky
 COMMON SHARED image(), force$(), armyloc(), armyname$(), player, aggress!
 COMMON SHARED armysize(), unittype(), armyexper(), supply(), month$()
 COMMON SHARED rcity(), vicflag(), tracks(), batwon(), cityo()
-COMMON SHARED armymove(), month, year, array(), mflag, side, sblast$, race()
+COMMON SHARED armymove(), month, year, array(), mflag, side, race()
 COMMON SHARED navyloc(), navysize(), navymove(), occupied(), vptotal, fort()
 COMMON SHARED victory&(), pbm, noise, capcity(), difficult, utility1
 COMMON SHARED chute(), font$(), brray(), casualty&(), airsize(), unitkind$()

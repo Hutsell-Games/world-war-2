@@ -169,7 +169,7 @@ COMMON SHARED nflag, bold, f3key, turbo!, rr(), tname$(), rusky, autosave
 COMMON SHARED image(), force$(), armyloc(), player, aggress!
 COMMON SHARED armysize(), unittype(), armyexper(), supply(), mnth$()
 COMMON SHARED rcity(), vicflag(), tracks(), batwon(), cityo()
-COMMON SHARED armymove(), mnth, yr, array(), mflag, side, sblast$, race()
+COMMON SHARED armymove(), mnth, yr, array(), mflag, side, race()
 COMMON SHARED navyloc(), navysize(), navymove(), occupied(), vptotal, fort()
 COMMON SHARED victory&(), pbm, noise, capcity(), difficult, utility1
 COMMON SHARED chute(), font$(), brray(), casualty&(), airsize(), unitkind$()
@@ -195,7 +195,6 @@ DIM SHARED usai(80), uki(80), fri(80), poli(80), rusi(80), geri(80), alship(100)
 DIM SHARED para(60), axship(100), drop(140), ike1(80), ike2(80), ike3(80), ike4(80)
 DIM SHARED parasw
 DIM SHARED yourname$(10), skorz&(2, 5)
-sblast$ = ""
 pb$ = CURDIR$
 
 SCREEN 12
@@ -583,7 +582,7 @@ hitek:
 		CALL sndfx(2)
 	ELSE
 		CALL image2("Technology Experiment Failed!", 4)
-		IF noise > 0 AND sblast$ = "" THEN FOR k = 600 TO 400 STEP -20: SOUND k, .9: NEXT k
+		IF noise > 0 THEN FOR k = 600 TO 400 STEP -20: SOUND k, .9: NEXT k
 	END IF
 	a = choose
 	CALL showtek(side, choose)
@@ -777,7 +776,7 @@ utile:
 	mtx$(1) = "Side": IF player = 2 THEN mtx$(1) = "-"
 	mtx$(2) = "1 Player": IF player = 2 THEN mtx$(2) = "2 Players"
 	mtx$(3) = "Noise" + STR$(noise)
-	IF noise > 0 AND sblast$ <> "" THEN mtx$(3) = mtx$(3) + " S"
+	IF noise > 0 THEN mtx$(3) = mtx$(3) + " S"
 	mtx$(4) = "Display" + STR$(turbo!)
 	mtx$(5) = "Balance " + STR$(difficult - 3)
 	mtx$(6) = "End Cond"
@@ -1195,7 +1194,7 @@ SUB animate (index)
 		GET (x1 - 7, y1 - 6)-(x1 + 9, y1 + 9), image
 		PUT (x1 - 7, y1 - 6), anima, PSET
 		CALL TICK(.01)
-		IF noise > 0 AND sblast$ = "" THEN SOUND 50, .03
+		IF noise > 0 THEN SOUND 50, .03
 		PUT (x1 - 7, y1 - 6), image, PSET
 		NEXT i
 END SUB
@@ -3320,7 +3319,7 @@ SUB airforce (who, chx)
 			airloc(who) = x1
 			CALL hangar
 			aflag = aflag + 1: IF teklev(who, 7) < 3 THEN aflag = 2
-			IF noise > 0 AND sblast$ = "" THEN SOUND 1200, 1: SOUND 900, 1
+			IF noise > 0 AND THEN SOUND 1200, 1: SOUND 900, 1
 			CALL clrrite
 		CASE 4
 			
@@ -5186,7 +5185,7 @@ SUB capture (active, c, s, flag, flee)
 	'------------------------------------------------------------------------------
 	cityp(c) = s
 	CALL flashcity(c)
-	IF flee > 0 AND noise > 1 AND sblast$ = "" THEN
+	IF flee > 0 AND noise > 1 AND THEN
 	' 1=US 2=German 3=UK 4=French 5=Polish 6=Russian 7=Italian 8=Generic Allied
 	SELECT CASE nation(active)
 	CASE 1, 3, 5, IS > 7
@@ -5303,7 +5302,7 @@ SUB events
 		CALL image2("Russia Enters the War", 4)
 		cityp(58) = 1
 		CALL flashcity(58)
-		IF noise > 1 AND sblast$ = "" THEN
+		IF noise > 1 AND THEN
 			PLAY "T170o3c4.o2b-8a-4g4f4e4f4c4o3c4.d-8c4o2b-4a-4g4f2"
 		END IF
 		TICK -2
@@ -5373,8 +5372,6 @@ SUB filer (switch)
 	IF switch < 3 THEN
 		OPEN "I", 1, "ww2.cfg"
 		INPUT #1, side, noise, difficult, player, turbo!, batwon(1), batwon(2), casualty&(1), casualty&(2), neuter, Mighty, a, pb$, autosave
-		IF sblast$ = "S" THEN noise = 1
-		IF sblast$ = "M" THEN noise = 2
 		IF a > 0 THEN weather = 1
 		CLOSE #1
 	END IF
