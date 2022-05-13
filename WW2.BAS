@@ -4445,7 +4445,10 @@ SUB navy (who, chx)
 	ahoy:
 	cost = 100 - 5 * teklev(who, 8)
 	cityp(0) = who
-	IF chx = 0 THEN CALL clrbot: PRINT "Funds available "; cash(who);
+	IF chx = 0 THEN 
+		CALL clrbot
+		PRINT "Funds available "; cash(who);
+	END IF
 	IF chx = 1 THEN
 		IF cash(who) < cost THEN EXIT SUB
 		IF navysize(who) > 9 THEN EXIT SUB
@@ -4456,7 +4459,9 @@ SUB navy (who, chx)
 	mtx$(3) = "Sail": IF navyloc(who) = 0 THEN mtx$(3) = "-": IF chx = 3 THEN chx = 1
 	tlx = 67: tly = 12: size = 3
 	IF teklev(who, 6) > 0 THEN
-	IF navysize(who) > 1 AND cityp(navyloc(who)) = 0 AND teklev(who, 6) > 0 THEN size = 4: mtx$(4) = "Amphib": IF chx > 0 THEN CALL void(navyloc(1), defend): IF defend < 200 THEN chx = 4
+		IF navysize(who) > 1 AND cityp(navyloc(who)) = 0 AND teklev(who, 6) > 0 THEN 
+			size = 4: mtx$(4) = "Amphib": IF chx > 0 THEN CALL void(navyloc(1), defend): IF defend < 200 THEN chx = 4
+		END IF
 	END IF
 
 	IF chx = 2 AND RND > .8 THEN chx = 3
