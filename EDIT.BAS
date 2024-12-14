@@ -53,9 +53,7 @@ filel = 1
 SCREEN 12
 CLS : CALL europe(0)
 chosit = 23
-'±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
 '                              Main Menu
-'±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
 menu0:
 colour = 4: IF side = 1 THEN colour = 9
 CALL boxes
@@ -78,32 +76,21 @@ size = 13
 choose = chosit
 CALL menu(0)
 IF choose > 0 AND choose <= size THEN IF LEN(mtx$(choose)) < 2 GOTO menu0
-'==========================================================================
-'                            Main Menu
-'==========================================================================
-SELECT CASE choose
+SELECT CASE choose ' Main Menu
 	CASE -1
 	chosit = 23: GOTO menu0
-'--------------------------------------------------------------------------
-'                       Side
-'--------------------------------------------------------------------------
-	CASE 1
+
+	CASE 1 ' Side
 	last = 0
 	side = 3 - side: chosit = 23
 	CALL clrbot: PRINT "Now editing "; force$(side); " side";
 	GOTO menu0
-'--------------------------------------------------------------------------
-'                       Army
-'--------------------------------------------------------------------------
-	CASE 2
+	CASE 2 ' Army
 	CALL clrbot: PRINT "Modifying "; force$(side); " forces";
 	CALL recruit((side))
 	chosit = 23
 	GOTO menu0
-'--------------------------------------------------------------------------
-'                       navy
-'--------------------------------------------------------------------------
-	CASE 3
+	CASE 3 ' Navy
 	mtx$(0) = "Navy"
 	mtx$(1) = "Move"
 	mtx$(2) = "Edit"
@@ -132,10 +119,7 @@ SELECT CASE choose
 			IF navysize(side) = 0 THEN navyloc(side) = 0: CALL europe(0)
 	END SELECT
 	chosit = 24
-'--------------------------------------------------------------------------
-'                               airforce
-'--------------------------------------------------------------------------
-	CASE 4
+	CASE 4 ' Airforce
 	CALL gcirc(airloc(side), 15)
 	mtx$(0) = "Airforce"
 	mtx$(1) = "Move"
@@ -165,10 +149,7 @@ SELECT CASE choose
 			IF airsize(side) = 0 THEN airloc(side) = 0: CALL europe(0)
 	END SELECT
 	chosit = 25
-'--------------------------------------------------------------------------
-'                               cities
-'--------------------------------------------------------------------------
-	CASE 5
+	CASE 5 ' Cities
 	target = 1
 	CALL newcity(target, 0)
 	IF target < 1 OR occupied(target) > 0 GOTO menu0
@@ -185,10 +166,7 @@ SELECT CASE choose
 		CALL flashcity(target)
 	chosit = 26
 	GOTO menu0
-'==========================================================================
-'                               Technology
-'==========================================================================
-	CASE 6
+	CASE 6 ' Technology
 	mtx$(0) = force$(side) + " Tech"
 	FOR k = 1 TO 8
 		mtx$(k) = tname$(k) + STR$(teklev(side, k))
@@ -203,16 +181,10 @@ SELECT CASE choose
 		CASE ELSE
 			CALL plusminus(tname$(choose), teklev(side, choose), 0, 3)
 	END SELECT
-'==========================================================================
-'                               Cash
-'==========================================================================
-	CASE 7
+	CASE 7 ' Cash
 	CALL plusminus(force$(side) + " CASH", cash(side), 0, 19999)
 	chosit = 28
-'==========================================================================
-'                               Capital
-'==========================================================================
-	CASE 8
+	CASE 8 ' Capital
 	chosit = 29
 	target = capcity(side)
 		CALL newcity(target, 0)
@@ -220,10 +192,7 @@ SELECT CASE choose
 		cityp(target) = side
 		capcity(side) = target
 		CALL showcity
-'==========================================================================
-'                               Fortify
-'==========================================================================
-	CASE 9
+	CASE 9 ' Fortify
 		target = 1
 		CALL newcity(target, 0)
 		IF target < 1 GOTO menu0
@@ -231,10 +200,7 @@ SELECT CASE choose
 		LINE (cityx(target) - 6, cityy(target) - 6)-(cityx(target) + 6, cityy(target) + 6), 2, BF
 		CALL showcity
 		chosit = 30
-'==========================================================================
-'                            Save
-'==========================================================================
-	CASE 10
+	CASE 10 ' Save
 filex:
 	ON ERROR GOTO 0
 	choose = 24: chosit = 31: IF filel = 0 THEN choose = 22
@@ -330,24 +296,15 @@ NEXT i
 		CASE size
 			GOTO menu0
 	END SELECT
-'==========================================================================
-'                            Different Scenario
-'==========================================================================
-	CASE 11
+	CASE 11 ' Different Scenario
 	GOTO newgame
-'==========================================================================
-'                            Play game
-'==========================================================================
-	CASE 12
+	CASE 12 ' Play Game
 	GOSUB yessir
 	IF choose <> 1 THEN CALL europe(0): GOTO menu0
 	CLS
 	PRINT "Loading game..."
 	RUN "ww2.exe"
-'==========================================================================
-'                            Quit
-'==========================================================================
-	CASE 13
+	CASE 13 ' Quit
 	GOSUB yessir
 	IF choose <> 1 THEN CALL europe(0): GOTO menu0
 	END
@@ -1090,7 +1047,6 @@ reglr:
 	GOSUB selswi
 	choose = row
 	GOTO sel1
-'°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°
 selex:
 '............................................................................
 crsr:

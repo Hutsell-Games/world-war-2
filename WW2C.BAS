@@ -1191,7 +1191,7 @@ reglr:
 	GOSUB selswi
 	choose = row
 	GOTO sel1
-'같같같같같같같같같같같같같같같같같같같같같같같같같같같같같같같같같같같같같같
+
 selex:
 IF Mighty > 0 AND (switch < 4 OR switch = 5 OR switch = 6 OR switch = 9 OR switch = 11 OR switch > 80) THEN
 		  CALL Mickey(a$, lButton, rButton, xc, yc)
