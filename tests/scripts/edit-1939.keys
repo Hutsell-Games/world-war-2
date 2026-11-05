@@ -1,0 +1,113 @@
+# The scenario editor (EDIT.BAS), written by hand. It leaves Starting Year once with Esc. It
+# then loads 1939, changes a technology level,
+# the cash, a city's fort, the navy and the side, saves the scenario as 1939 again, loads it
+# back, and quits. The run's saved files are checked by their hashes (the "#! files" line):
+# the scenario and map as saved, and the backups that SHELL "copy" made of the originals.
+#! program edit
+#! files WW1939.INI EURO1939.DAT WW1939.BAK EURO1939.BAK
+
+# Starting Year: Esc, which brings the same menu back (getyr's exit by RETURN), then the first
+# entry, EURO1939.DAT.
+play until 2:S
+digest
+key esc
+play until 2:S
+digest
+key enter
+
+# Technology: the second entry, one level up.
+play until 2:M
+digest
+text t
+play until 2:A
+digest
+key down
+prompt
+key enter
+play until 7
+digest
+key up
+play until 7
+key enter
+
+# Cash, the entry below Technology: doubled.
+play until 2:M
+digest
+key down
+prompt
+key enter
+play until 7
+key pageup
+play until 7
+digest
+key enter
+
+# Fortify: the first city whose name starts with B, then one level up.
+play until 2:M
+text f
+play until 2:C
+text b
+play until 2:C
+digest
+key enter
+play until 7
+key up
+play until 7
+digest
+key enter
+
+# Navy, Edit: one ship more.
+play until 2:M
+digest
+text n
+play until 2:N
+text e
+play until 7
+key up
+play until 7
+digest
+key enter
+
+# Side: now the Axis side, then back to the Allied side.
+play until 2:M
+text s
+play until 2:M
+digest
+text s
+
+# Save, the fourth entry from the end: as 1939, its month as it is, its description as it is.
+play until 2:M
+key pagedown
+prompt
+key up
+prompt
+key up
+prompt
+key up
+prompt
+digest
+key enter
+play until 2:S
+digest
+key enter
+play until 2:B
+digest
+key enter
+play until 4
+key enter
+
+# Load: 1939 again, now the edited scenario.
+play until 2:M
+digest
+text l
+play until 2:S
+key enter
+play until 2:M
+digest
+
+# Quit, then Yes by its letter, and a key for END's "Press any key to continue".
+text q
+play until 2:L
+digest
+text y
+repeat space

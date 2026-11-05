@@ -16,6 +16,10 @@ Lines of a script that start with "#!" set up its run (other "#" lines are comme
     #! seed <n>              the random seed (WW2_SEED; default 1)
     #! cfg <field>=<value>   a field of the ww2.cfg the run starts with (CFG_FIELDS below)
     #! timeout <seconds>     the longest the run may take (default 300)
+    #! program <name>        the program the script plays: ww2 (WW2.BAS, the default) or edit
+                             (EDIT.BAS, the scenario editor)
+    #! files <name> ...      files of the run's folder to check after the run: each becomes a
+                             last entry "file <name> <hash>" (or "file <name> missing")
 
 Exit code: 0 when every script passed, 1 when one failed, 2 when a build or the set-up failed.
 """
@@ -64,6 +68,8 @@ CFG_FIELDS = {
 
 COMPILERS = ("pe", "rust")
 DEFAULT_TIMEOUT = 300
+# The programs a script can play: the source each is built from.
+PROGRAMS = {"ww2": "WW2.BAS", "edit": "EDIT.BAS"}
 
 
 # ---------------------------------------------------------------------------------- the tools
@@ -114,15 +120,17 @@ def source_stamp(tools: Tools, compiler: str) -> str:
     return h.hexdigest()
 
 
-def build(tools: Tools, compiler: str, coverage: bool = False) -> Path:
-    """Builds WW2.BAS with the screen hook linked in, unless the build of the same sources is there.
-    With coverage (QB64Rust only) the build counts each statement it runs."""
+def build(tools: Tools, compiler: str, coverage: bool = False, program: str = "ww2") -> Path:
+    """Builds a program (WW2.BAS, or EDIT.BAS for "edit") with the screen hook linked in, unless the
+    build of the same sources is there. With coverage (QB64Rust only) the build counts each statement
+    it runs."""
     exe = tools.exes[compiler]
     if not exe.is_file():
         raise SetupError(f"compiler not found: {exe}")
-    folder = OUT / "build" / (compiler + ("-coverage" if coverage else ""))
+    name = compiler + ("-coverage" if coverage else "") + ("" if program == "ww2" else f"-{program}")
+    folder = OUT / "build" / name
     folder.mkdir(parents=True, exist_ok=True)
-    target = folder / ("ww2.exe" if os.name == "nt" else "ww2")
+    target = folder / (f"{program}.exe" if os.name == "nt" else program)
     stamp_file = folder / "stamp.txt"
     stamp = source_stamp(tools, compiler)
     if target.is_file() and stamp_file.is_file() and stamp_file.read_text() == stamp:
@@ -131,15 +139,28 @@ def build(tools: Tools, compiler: str, coverage: bool = False) -> Path:
     log = folder / "build-log.txt"
     # The path of the hook must hold no blank (tools/screen/README.md); forward slashes suit both.
     hook = tools.screen_state.resolve().as_posix()
-    cmd = [str(exe), "-x", *(["--coverage"] if coverage else []), str(GAME / "WW2.BAS"), "-o", str(target),
-           f"-f:ExtraLinkerFlags={hook}"]
-    print(f"building with {compiler}{' --coverage' if coverage else ''} ...", flush=True)
+    cmd = [str(exe), "-x", *(["--coverage"] if coverage else []), str(GAME / PROGRAMS[program]), "-o",
+           str(target), f"-f:ExtraLinkerFlags={hook}"]
+    print(f"building {PROGRAMS[program]} with {compiler}{' --coverage' if coverage else ''} ...", flush=True)
     with open(log, "wb") as out:
         rc = subprocess.run(cmd, stdout=out, stderr=subprocess.STDOUT, cwd=GAME).returncode
     if rc != 0 or not target.is_file():
         raise SetupError(f"the {compiler} build failed (exit code {rc}); see {rel(log)}")
     stamp_file.write_text(stamp)
     return target
+
+
+def build_all(tools: Tools, compilers: tuple[str, ...], scripts: list[Script],
+              coverage: bool = False) -> dict[tuple[str, str], Path]:
+    """The builds the scripts need, by (compiler, program); the builds of one compiler one after
+    the other, the compilers at once."""
+    programs = sorted({s.program for s in scripts})
+
+    def one(compiler: str) -> list[tuple[tuple[str, str], Path]]:
+        return [((compiler, p), build(tools, compiler, coverage, p)) for p in programs]
+
+    return dict(pair for found in parallel(len(compilers), [lambda c=c: one(c) for c in compilers])
+                for pair in found)
 
 
 class SetupError(Exception):
@@ -156,6 +177,8 @@ class Script:
     seed: str = "1"
     cfg: dict[str, str] = field(default_factory=lambda: dict(CFG_FIELDS))
     timeout: int = DEFAULT_TIMEOUT
+    program: str = "ww2"
+    files: list[str] = field(default_factory=list)
 
     @property
     def recorded(self) -> Path:
@@ -182,6 +205,12 @@ def load_script(keys: Path) -> Script:
                 if key not in CFG_FIELDS or not value:
                     raise SetupError(f"{where}: unknown cfg field {item!r} (fields: {', '.join(CFG_FIELDS)})")
                 script.cfg[key] = value
+        elif words[0] == "program" and len(words) == 2:
+            if words[1] not in PROGRAMS:
+                raise SetupError(f"{where}: unknown program {words[1]!r} (programs: {', '.join(PROGRAMS)})")
+            script.program = words[1]
+        elif words[0] == "files" and len(words) > 1:
+            script.files += words[1:]
         else:
             raise SetupError(f"{where}: not a set-up line: {line}")
     return script
@@ -388,7 +417,32 @@ def run_script(tools: Tools, exe: Path, script: Script, compiler: str, tag: str 
             kill_tree(proc)
             rc = None
     data = state.read_bytes() if state.is_file() else b""
-    return Run(script, compiler, tag, rc, data, folder)
+    return with_files(Run(script, compiler, tag, rc, data, folder), work)
+
+
+def with_files(run: Run, work: Path) -> Run:
+    """Adds the entries of the script's "#! files" to a run that ended as it should. A failed run
+    is left as it is, so that its last entry still says why it failed (run_problem)."""
+    if not run.script.files or run_problem(run) is not None:
+        return run
+    run.state += file_entries(work, run.script.files)
+    return run
+
+
+def file_entries(work: Path, names: list[str]) -> bytes:
+    """A line "file <name> <hash>" for each file the script names, after its run. The hash is of
+    the file with CRLF line ends taken as LF, so that the same text gives the same hash on every
+    system. A name matches a file whatever its case, as on Windows."""
+    present = {p.name.lower(): p for p in work.iterdir() if p.is_file()}
+    out = b""
+    for name in names:
+        path = present.get(name.lower())
+        if path is None:
+            out += f"file {name} missing\n".encode()
+        else:
+            digest = hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()[:16].upper()
+            out += f"file {name} {digest}\n".encode()
+    return out
 
 
 def run_problem(run: Run) -> str | None:
@@ -464,11 +518,12 @@ def explain(tools: Tools, exe: Path, script: Script, compiler: str, want: list[b
 def cmd_check(args: argparse.Namespace, tools: Tools) -> int:
     scripts = find_scripts(args.scripts)
     compiler = args.compiler
-    exe = build(tools, compiler)
     missing = [s.name for s in scripts if not s.recorded.is_file()]
     if missing:
         raise SetupError(f"not recorded: {', '.join(missing)} (python tests/play.py record <name>)")
-    runs = parallel(args.jobs, [lambda s=s: run_script(tools, exe, s, compiler) for s in scripts])
+    exes = build_all(tools, (compiler,), scripts)
+    runs = parallel(args.jobs, [lambda s=s: run_script(tools, exes[compiler, s.program], s, compiler)
+                                for s in scripts])
     failed = 0
     for run in runs:
         want = entries(run.script.recorded.read_bytes())
@@ -487,15 +542,15 @@ def cmd_check(args: argparse.Namespace, tools: Tools) -> int:
               + (f"; {problem}" if problem else ""))
         print(f"    recorded: {short(want[index] if index < len(want) else None)}")
         print(f"    now:      {short(got[index] if index < len(got) else None)}", end="")
-        print(explain(tools, exe, run.script, compiler, want))
+        print(explain(tools, exes[compiler, run.script.program], run.script, compiler, want))
     print(f"{len(runs) - failed} passed, {failed} failed")
     return 1 if failed else 0
 
 
 def cmd_compare(args: argparse.Namespace, tools: Tools) -> int:
     scripts = find_scripts(args.scripts)
-    exes = dict(zip(COMPILERS, parallel(2, [lambda c=c: build(tools, c) for c in COMPILERS])))
-    work = [lambda s=s, c=c: run_script(tools, exes[c], s, c) for s in scripts for c in COMPILERS]
+    exes = build_all(tools, COMPILERS, scripts)
+    work = [lambda s=s, c=c: run_script(tools, exes[c, s.program], s, c) for s in scripts for c in COMPILERS]
     runs = parallel(args.jobs, work)
     failed = 0
     for pe, rust in zip(runs[0::2], runs[1::2]):
@@ -526,8 +581,8 @@ def cmd_compare(args: argparse.Namespace, tools: Tools) -> int:
 
 def cmd_record(args: argparse.Namespace, tools: Tools) -> int:
     scripts = find_scripts(args.scripts)
-    exes = dict(zip(COMPILERS, parallel(2, [lambda c=c: build(tools, c) for c in COMPILERS])))
-    work = [lambda s=s, c=c, t=t: run_script(tools, exes[c], s, c, tag=t)
+    exes = build_all(tools, COMPILERS, scripts)
+    work = [lambda s=s, c=c, t=t: run_script(tools, exes[c, s.program], s, c, tag=t)
             for s in scripts for c in COMPILERS for t in ("1", "2")]
     runs = parallel(args.jobs, work)
     failed = 0
@@ -549,7 +604,8 @@ def cmd_record(args: argparse.Namespace, tools: Tools) -> int:
     # A copy with full states, kept on this machine only (tests/out/recorded), so that a check that
     # fails later can show the screen as it was recorded beside the screen now.
     done = [s for s in scripts if s.recorded.is_file()]
-    full = parallel(args.jobs, [lambda s=s: run_script(tools, exes["rust"], s, "rust", tag="full", full_states=True)
+    full = parallel(args.jobs, [lambda s=s: run_script(tools, exes["rust", s.program], s, "rust", tag="full",
+                                                       full_states=True)
                                 for s in done])
     for run in full:
         if first_difference(entries(run.state), entries(run.script.recorded.read_bytes())) is None:
@@ -568,33 +624,44 @@ def full_copy(script: Script) -> Path:
 def cmd_coverage(args: argparse.Namespace, tools: Tools) -> int:
     """Runs the scripts with a coverage build, and the unit tests with `qb64rust test --coverage`
     when no script is named or --unit-tests is given, and reports the lines they reach (QB64Rust's tools/coverage/coverage.py).
-    The report goes to tests/out/coverage/report.txt."""
+    The report of the game goes to tests/out/coverage/report.txt, the editor's to report-edit.txt."""
     scripts = find_scripts(args.scripts)
-    exe = build(tools, "rust", coverage=True)
+    exes = build_all(tools, ("rust",), scripts, coverage=True)
     folder = OUT / "coverage"
     shutil.rmtree(folder, ignore_errors=True)
     folder.mkdir(parents=True)
     counts = {s.name: folder / f"{s.name}.txt" for s in scripts}
-    work = [lambda s=s: run_script(tools, exe, s, "rust", tag="coverage",
+    work = [lambda s=s: run_script(tools, exes["rust", s.program], s, "rust", tag="coverage",
                                    extra_env={"QB64RUST_COVERAGE": str(counts[s.name])}) for s in scripts]
     runs = parallel(args.jobs, work)
     for run in runs:
         problem = run_problem(run)
         print(f"{'FAIL' if problem else 'ok  '}  {run.label}" + (f": {problem}" if problem else ""))
-    script_counts = [p for p in counts.values() if p.is_file()]
-    have = [str(p) for p in script_counts]
-    if args.unit_tests or not args.scripts:
-        unit = unit_test_counts(tools, folder, args.jobs)
-        if unit:
-            have.append(str(unit))
-            added = reached_only_by(unit, script_counts)
-            print(f"  the unit tests reach {added} statements that no script reaches")
-    if not have:
-        raise SetupError("no run wrote its counts")
+    for program in PROGRAMS:
+        script_counts = [counts[s.name] for s in scripts if s.program == program and counts[s.name].is_file()]
+        have = [str(p) for p in script_counts]
+        # The unit tests call the game's SUBs, not the editor's.
+        if program == "ww2" and (args.unit_tests or not args.scripts):
+            unit = unit_test_counts(tools, folder, args.jobs)
+            if unit:
+                have.append(str(unit))
+                added = reached_only_by(unit, script_counts)
+                print(f"  the unit tests reach {added} statements that no script reaches")
+        if have:
+            coverage_report(tools, folder, program, have)
+        elif any(s.program == program for s in scripts):
+            raise SetupError(f"no run of {PROGRAMS[program]} wrote its counts")
+    return 0
+
+
+def coverage_report(tools: Tools, folder: Path, program: str, have: list[str]) -> None:
+    """Writes the coverage report of one program from its count files, and its table per SUB."""
+    suffix = "" if program == "ww2" else f"-{program}"
+    print(f"{PROGRAMS[program]}:")
     tool = tools.qb64rust_repo / "tools" / "coverage" / "coverage.py"
-    r = subprocess.run([sys.executable, "-I", str(tool), "--program", str(GAME / "WW2.BAS"), *have],
+    r = subprocess.run([sys.executable, "-I", str(tool), "--program", str(GAME / PROGRAMS[program]), *have],
                        capture_output=True, text=True)
-    report = folder / "report.txt"
+    report = folder / f"report{suffix}.txt"
     report.write_text(r.stdout + r.stderr)
     if r.returncode != 0:
         print(r.stdout + r.stderr)
@@ -612,10 +679,9 @@ def cmd_coverage(args: argparse.Namespace, tools: Tools) -> int:
     if total[0]:
         print(f"  {'all':12} {100 * (total[1] + total[2]) / total[0]:5.1f}%  {total[0]} lines with a statement: "
               f"{total[1]} run, {total[2]} partly run, {total[3]} not run")
-    subs = folder / "subs.txt"
-    subs.write_text(sub_table([Path(p) for p in have]))
+    subs = folder / f"subs{suffix}.txt"
+    subs.write_text(sub_table([Path(p) for p in have], PROGRAMS[program].lower()))
     print(f"report: {rel(report)}; per SUB: {rel(subs)}")
-    return 0
 
 
 def unit_test_counts(tools: Tools, folder: Path, jobs: int) -> Path | None:
@@ -682,8 +748,9 @@ def reached_only_by(unit: Path, scripts: list[Path]) -> int:
     return sum(1 for key, n in statement_counts([unit]).items() if n and not by_scripts.get(key))
 
 
-def sub_table(count_files: list[Path]) -> str:
-    """The statements each SUB and FUNCTION has and runs, from coverage records, the least covered first."""
+def sub_table(count_files: list[Path], main: str = "ww2.bas") -> str:
+    """The statements each SUB and FUNCTION has and runs, from coverage records, the least covered first.
+    main is the file of the main module, in lower case."""
     counts = statement_counts(count_files)
     # Each file's lines, mapped to the procedure they are in.
     starts: dict[str, list[tuple[int, str]]] = {}
@@ -698,7 +765,7 @@ def sub_table(count_files: list[Path]) -> str:
         starts[name] = found
     table: dict[tuple[str, str], list[int]] = {}
     for (name, line, _), count in counts.items():
-        proc = "(main module)" if name == "ww2.bas" else "(outside procedures)"
+        proc = "(main module)" if name == main else "(outside procedures)"
         for n, sub in starts[name]:
             if n <= line:
                 proc = sub
@@ -714,7 +781,7 @@ def sub_table(count_files: list[Path]) -> str:
 
 def cmd_explore(args: argparse.Namespace, tools: Tools) -> int:
     script = load_script(Path(args.keys))
-    exe = build(tools, args.compiler)
+    exe = build(tools, args.compiler, program=script.program)
     # The keys; if the last step gave a key, a state at the next wait; then a prompt that no wait
     # answers, so the run stops there and writes the state at exit.
     folder = OUT / "explore"

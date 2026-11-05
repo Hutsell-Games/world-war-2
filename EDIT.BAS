@@ -30,6 +30,7 @@ GET (121, 133)-(137, 143), ike2
 GET (100, 133)-(116, 143), ike3
 GET (100, 144)-(116, 153), ike4
 
+CALL scriptcheck
 CLS
 LINE (0, 0)-(639, 449), 8, BF
 LINE (0, 450)-(639, 479), 4, BF
@@ -497,6 +498,7 @@ SUB Enput (t$, tlx, tly, brx, mask$)
 '===========================================================================
 '                               Initialize
 '===========================================================================
+  CALL announce(4, "")
   x1 = 1
   text$ = t$ + SPACE$(brx - tlx + 1 - LEN(t$))
   LOCATE tly, tlx: PRINT text$;
@@ -735,7 +737,9 @@ redo:
 	mtx$(0) = "Starting Year"
 	t$ = DIR$("euro*.dat")
 	colour = 3
+	' QB64: getyr always ends by RETURN, so that no GOSUB stays pending (devnotes.md)
 	GOSUB getyr
+	IF choose < 0 THEN EXIT SUB
 
 	CALL clrbot
 	LOCATE 29, 1: PRINT "Loading "; begin$;
@@ -821,7 +825,7 @@ wbase:
 '...................................menu of options.........................
 getyr:
 	size = 0
-	IF LEN(t$) = 0 THEN choose = -1: EXIT SUB
+	IF LEN(t$) = 0 THEN choose = -1: RETURN
 	size = size + 1
 	mtx$(size) = t$
 	array(size) = size
@@ -834,11 +838,11 @@ getyr:
 	size = size + 1: mtx$(size) = "Quit"
 	tlx = 18: tly = 14 - .5 * size
 	CALL menu(11)
-	IF choose < 0 THEN choose = -1: EXIT SUB
+	IF choose < 0 THEN choose = -1: RETURN
 	IF choose = size THEN END
 	x = INSTR(mtx$(choose), "1")
 	begin$ = LTRIM$(MID$(mtx$(choose), x, 4))
-	IF LEN(begin$) < 1 THEN choose = -1: EXIT SUB
+	IF LEN(begin$) < 1 THEN choose = -1: RETURN
 RETURN
 END SUB
 
@@ -1098,6 +1102,7 @@ selex:
 	leave = 0
 '............................................................................
 crsr:
+	CALL announce(2, LEFT$(LTRIM$(mtx$(0)), 1))
 	DO: a$ = INKEY$: LOOP WHILE a$ = ""
 akey5:
 	IF ASC(a$) = 13 THEN RETURN
@@ -1171,6 +1176,7 @@ noadjust:
 boss:
 	CLS
 	LOCATE 1, 1: PRINT "C:>";
+	CALL announce(6, "")
 	DO: a$ = INKEY$: LOOP WHILE a$ = ""
 	IF ASC(a$) <> 2 GOTO boss
 boss1:
@@ -1356,6 +1362,7 @@ IF UCASE$(LEFT$(a$, 2)) = "ST" THEN
 ELSE
 	LOCATE 18, 71: PRINT a; " ";
 END IF
+CALL announce(7, "")
 DO WHILE t$ = "": t$ = INKEY$: LOOP
 
 SELECT CASE RIGHT$(t$, 1)
@@ -1645,8 +1652,10 @@ PRINT a$;
 END SUB
 
 SUB TICK (sec!)
+IF scripted THEN EXIT SUB
 start! = TIMER
 DO WHILE TIMER - start! < sec! AND INKEY$ = "": LOOP
 END SUB
 
 '$INCLUDE: 'qb64.bm'
+'$INCLUDE: 'script.bm'

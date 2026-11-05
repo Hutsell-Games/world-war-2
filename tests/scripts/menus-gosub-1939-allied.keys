@@ -1,0 +1,95 @@
+# Menus answered by a letter or Esc inside a GOSUB routine, written by hand. Choosing a menu entry
+# by its letter, or leaving with Esc, once left a GOSUB of menu pending, and the next RETURN
+# stopped the game with "RETURN without GOSUB" (devnotes/devnotes.md, item 12). These steps once
+# did that:
+#   - Start Year: 1939 by its letter (filer's getyr);
+#   - Editor, then No by its letter (yesno);
+#   - Files, Quit, then Esc (yesno);
+#   - Files, Load, then a saved game by its letter (filer's getsave).
+# The other steps play the exits that item 12 rewrote: Esc at Start Year (getyr), Esc at Saved
+# Games after Load and after Save (getsave), and F7 at the main menu (selex). The last step,
+# Files, Quit, then Yes by its letter, ends the game.
+#! seed 1939
+
+# Waits that any key ends.
+rule 1 key space
+
+# The title menu: Start NEW Game. Esc at Start Year, then Start NEW Game again.
+play until 2:W
+text s
+play until 2:S
+digest
+key esc
+play until 2:W
+digest
+text s
+
+# Start Year: 1939, by its letter.
+play until 2:S
+text 1
+
+# Editor, the entry above Files (the last), then No by its letter.
+play until 2:M
+digest
+key pagedown
+prompt
+key up
+prompt
+key enter
+play until 2:Q
+digest
+text n
+
+# Files, Quit, then Esc.
+play until 2:M
+digest
+text f
+prompt
+text q
+play until 2:Q
+key esc
+
+# Files, Load, then Esc at Saved Games.
+play until 2:M
+digest
+text f
+prompt
+text l
+play until 2:S
+digest
+key esc
+
+# Files, Save, then Esc at Saved Games.
+play until 2:M
+digest
+text f
+prompt
+text s
+play until 2:S
+digest
+key esc
+
+# Files, Load, then the first saved game by its letter.
+play until 2:M
+digest
+text f
+prompt
+text l
+play until 2:S
+digest
+text 1
+
+# F7: the end of the turn.
+play until 2:M
+digest
+key f7
+
+# Files, Quit, then Yes by its letter, and a key for END's "Press any key to continue".
+play until 2:M
+digest
+text f
+prompt
+text q
+play until 2:Q
+text y
+repeat space

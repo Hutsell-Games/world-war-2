@@ -1,6 +1,6 @@
 ' ===========================================================================
 ' SCRIPT.BM - hooks for the whole-game scripts of tests\play.py.
-' Included at the end of WW2.BAS. See tests\README.md.
+' Included at the end of WW2.BAS and EDIT.BAS. See tests\README.md.
 '
 ' A game started with the environment variable WW2_SEED set is "scripted":
 '   - RANDOMIZE takes that number instead of TIMER, so every run is the same;
@@ -10,6 +10,8 @@
 '   - a timed pause (TICK with a time above 0) returns at once;
 '   - a saved game holds the date 01-01-2000 instead of today's.
 ' A game started without it plays as before: announce does nothing.
+' The editor calls scriptcheck instead of scriptstart: it never called
+' RANDOMIZE, and it has no saved games.
 ' ===========================================================================
 
 ' Seeds the random numbers, from WW2_SEED when it is set, else from TIMER.
@@ -26,14 +28,21 @@ FUNCTION scriptdate$
 IF scripted THEN scriptdate$ = "01-01-2000" ELSE scriptdate$ = DATE$
 END FUNCTION
 
+' Sets scripted when WW2_SEED is set, and seeds nothing (the editor).
+SUB scriptcheck
+IF ENVIRON$("WW2_SEED") <> "" THEN scripted = 1
+END SUB
+
 ' Says that the game is about to wait for a key. place names the kind of
 ' wait (1 to 255) and letter$ narrows it (its first character, or ""):
 '   1  a pause that any key ends (TICK)
 '   2  a menu; letter$ is the first letter of the menu's title
 '   3  a wait for a key or a mouse button (Mickey)
-'   4  the commander's name for the high scores (INPUT)
+'   4  a line of text: the commander's name for the high scores (INPUT),
+'      the editor's description of a scenario (Enput, EDIT.BAS)
 '   5  the news of a play-by-mail game
 '   6  the boss screen, which only Ctrl+B ends
+'   7  the editor's number to change (plusminus, EDIT.BAS)
 ' Byte &H4F1 holds the place, &H4F2 the letter, and &H4F0 counts the waits.
 SUB announce (place, letter$)
 IF scripted = 0 THEN EXIT SUB

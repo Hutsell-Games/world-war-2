@@ -309,7 +309,9 @@ redo:
 	mtx$(0) = "Start Year"
 	t$ = DIR$("euro*.dat")
 	colour = 3
+	' QB64: getyr and getsave always end by RETURN, so that no GOSUB stays pending (devnotes.md)
 	GOSUB getyr
+	IF choose < 0 THEN EXIT SUB
 
 	CALL clrbot
 	LOCATE 29, 1: PRINT "Loading "; begin$;
@@ -357,6 +359,7 @@ NEXT i
 	tlx = 0: tly = 12: colour = 6
 	mtx$(0) = "Load Saved Game"
 	colour = 4: GOSUB getsave
+	IF choose < 0 THEN EXIT SUB
 
 	CALL clrbot: PRINT "Loading";
 
@@ -399,7 +402,12 @@ NEXT i
 	NEXT k
 ':::::::::::::::::::::::::::::::::::::::SAVE:::::::::::::::::::::::::::::::::
 	CASE 3, 6
-	IF switch = 3 THEN GOSUB getsave ELSE file$ = "wwii5.sav"
+	IF switch = 3 THEN
+		GOSUB getsave
+		IF choose < 0 THEN EXIT SUB
+	ELSE
+		file$ = "wwii5.sav"
+	END IF
 	CALL clrbot: PRINT "Saving "; file$;
 	OPEN "O", 1, file$
 	WRITE #1, scenario$, begin$, scriptdate$
@@ -484,7 +492,7 @@ refile:
 '...................................menu of options.........................
 getyr:
 	size = 0
-	IF LEN(t$) = 0 THEN choose = -1: EXIT SUB
+	IF LEN(t$) = 0 THEN choose = -1: RETURN
 	size = size + 1
 	mtx$(size) = LTRIM$(MID$(t$, 5, 4))
 	array(size) = size
@@ -497,9 +505,9 @@ getyr:
 	CALL bubble((size))
 	tlx = 18: tly = 14 - .5 * size
 	CALL menu(11)
-	IF choose < 0 THEN choose = -1: EXIT SUB
+	IF choose < 0 THEN choose = -1: RETURN
 	begin$ = mtx$(choose)
-	IF LEN(begin$) < 1 THEN choose = -1: EXIT SUB
+	IF LEN(begin$) < 1 THEN choose = -1: RETURN
 RETURN
 getsave:
 	CLS
@@ -522,7 +530,7 @@ getsave:
 	mtx$(0) = "Saved Games"
 	tlx = 21: tly = 7
 	CALL menu(11)
-	IF choose < 0 THEN EXIT SUB
+	IF choose < 0 THEN RETURN
 	file$ = "wwii" + LTRIM$(STR$(choose)) + ".sav"
 	RETURN
 randarm:

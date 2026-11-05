@@ -69,4 +69,5 @@ DIM SHARED teklev(2, 8), tek$(3), airsize(2), unitkind$(6), nation(maxarmy)
 DIM SHARED graphic(1 TO 6000), country$(10), forecast$(4)
 DIM SHARED atkfac(maxarmy), deffac(maxarmy), movfac(maxarmy), costfac(maxarmy), airloc(2)
 DIM SHARED featx(19), featy(19), shipx(2), shipy(2), gci(12)
+DIM SHARED scripted
 

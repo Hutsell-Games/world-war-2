@@ -89,6 +89,41 @@ class ScriptTest(unittest.TestCase):
         with self.assertRaises(play.SetupError):
             self.load("#! speed 3\n")
 
+    def test_program_and_files(self):
+        s = self.load("#! program edit\n#! files WW1939.INI EURO1939.DAT\n#! files ww1939.bak\n")
+        self.assertEqual(s.program, "edit")
+        self.assertEqual(s.files, ["WW1939.INI", "EURO1939.DAT", "ww1939.bak"])
+        self.assertEqual(self.load("key space\n").program, "ww2")
+
+    def test_unknown_program(self):
+        with self.assertRaises(play.SetupError):
+            self.load("#! program demo\n")
+
+    def test_file_entries(self):
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "ww1939.bak").write_bytes(b"a\r\nb\r\n")
+            (Path(d) / "lf.txt").write_bytes(b"a\nb\n")
+            lines = play.file_entries(Path(d), ["WW1939.BAK", "lf.txt", "none.dat"]).decode().splitlines()
+            # CRLF and LF give the same hash; the name matches whatever its case.
+            self.assertEqual(lines[0].split()[:2], ["file", "WW1939.BAK"])
+            self.assertEqual(lines[0].split()[2], lines[1].split()[2])
+            self.assertEqual(lines[2], "file none.dat missing")
+            # Each line is an entry of its own, after the states.
+            self.assertEqual(play.entries(STATE + "\n".join(lines).encode() + b"\n")[1:],
+                             [line.encode() for line in lines])
+
+    def test_files_only_after_a_run_that_ended_well(self):
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "a.dat").write_bytes(b"a\n")
+            script = self.load("#! files a.dat\n")
+            ok = play.with_files(play.Run(script, "c", "", 0, STATE, Path(d)), Path(d))
+            self.assertTrue(play.entries(ok.state)[-1].startswith(b"file a.dat "))
+            # A stopped run keeps "stopped" as its last entry, so the reason for the failure shows.
+            stopped = STATE + b"stopped k line 3: no prompt in time\n"
+            bad = play.with_files(play.Run(script, "c", "", 125, stopped, Path(d)), Path(d))
+            self.assertEqual(bad.state, stopped)
+            self.assertIn("no prompt in time", play.run_problem(bad))
+
     def test_cfg_line_in_filer_order(self):
         with tempfile.TemporaryDirectory() as d:
             play.write_cfg(Path(d), dict(play.CFG_FIELDS))
@@ -124,6 +159,13 @@ class CoverageTest(unittest.TestCase):
             )
             self.assertEqual(play.reached_only_by(unit, [script]), 1)
             self.assertEqual(play.statement_counts([unit, script])[("ww2b.bm", 11, 1)], 4)
+
+    def test_sub_table_names_the_main_module_of_the_program(self):
+        with tempfile.TemporaryDirectory() as d:
+            counts = Path(d) / "edit.txt"
+            counts.write_text("coverage 2\nfile\t1\tcccc\tEDIT.BAS\n1\t50\t1\t2\t\nend\n", encoding="latin-1")
+            # Line 50 of EDIT.BAS is in its main module, before its first SUB.
+            self.assertIn("(main module)", play.sub_table([counts], "edit.bas"))
 
 
 class MakeScriptsTest(unittest.TestCase):

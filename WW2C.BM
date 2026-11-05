@@ -131,7 +131,9 @@ tower:
 		END IF
 		mtx$(0) = "City Bomb"
 aack:
+		' QB64: norden always ends by RETURN, so that no GOSUB stays pending (devnotes.md)
 		c = 1: GOSUB norden
+		IF leave = 3 THEN EXIT SUB
 		IF chx = 0 AND (x1 < 1 OR x1 > ncity) GOTO flaps
 		IF x1 > 56 THEN CALL clrbot: PRINT "Cannot bomb "; city$(x1); : TICK 2: GOTO flaps
 		IF cityp(x1) = who GOTO flaps
@@ -372,6 +374,7 @@ hasmen:
 		utility1 = 4
 		IF who = side THEN xc = airloc(side)
 		c = 0: GOSUB norden
+		IF leave = 3 THEN EXIT SUB
 		IF who = side THEN CALL gcirc(xc, 2)
 		IF cityp(x1) <> side THEN x1 = 0
 		IF chx = 0 AND (x1 < 1 OR x1 > ncity) THEN CALL clrbot: PRINT "ILLEGAL CHOICE for new AirBase"; : GOTO flaps
@@ -401,6 +404,7 @@ newbase:
 	END SELECT
 EXIT SUB
 norden:
+	leave = 0
 	SELECT CASE chx
 		CASE 0
 			FOR k = 1 TO ncity - 2
@@ -428,7 +432,7 @@ retarg:
 			NEXT k
 			NEXT j
 			IF x1 = 0 THEN
-				spin = spin - 1: IF spin < 1 THEN CALL clrrite: EXIT SUB
+				spin = spin - 1: IF spin < 1 THEN CALL clrrite: leave = 3: RETURN
 				GOTO retarg
 			END IF
 	END SELECT
@@ -1164,7 +1168,11 @@ sel1:
 			END IF
 	END SELECT
 	LINE (8 * (tlx + 1), 16 * (tly + row + 1))-(8 * (tlx + LEN(mtx$(row)) + 1) - 1, 16 * (tly + row + 2) - 1), 7, B
+	' QB64: selex always ends by RETURN, so that no GOSUB stays pending (devnotes.md)
 	GOSUB selex
+	IF leave = 1 GOTO called
+	IF leave = 2 GOTO boss
+	IF leave = 3 THEN EXIT SUB
 	IF switch <> 3 GOTO reglr
 	IF a$ = "H" THEN choose = 1: GOTO called
 	IF ASC(a$) = 13 THEN choose = 2: GOTO called
@@ -1179,10 +1187,11 @@ reglr:
 	GOTO sel1
 '같같같같같같같같같같같같같같같같같같같같같같같같같같같같같같같같같같같같같같
 selex:
+	leave = 0
 IF Mighty > 0 AND (switch < 4 OR switch = 5 OR switch = 6 OR switch = 9 OR switch = 11 OR switch > 80) THEN
 		  CALL Mickey(a$, lButton, rButton, xc, yc)
 		  IF a$ <> "" THEN
-			IF switch > 100 THEN choose = -1: CALL placearmy(switch - 100): GOTO called
+			IF switch > 100 THEN choose = -1: CALL placearmy(switch - 100): leave = 1: RETURN
 			utility1 = 0
 			GOTO akey5
 		  END IF
@@ -1203,7 +1212,7 @@ IF Mighty > 0 AND (switch < 4 OR switch = 5 OR switch = 6 OR switch = 9 OR switc
 '............................. air force select ............................
 		IF k = airloc(side) THEN
 			z = ABS(cityx(k) + 4 - xc) + ABS(cityy(k) - 9 - yc)
-			IF z < 5 THEN choose = -4: GOTO called
+			IF z < 5 THEN choose = -4: leave = 1: RETURN
 		END IF
 		NEXT k
 '........................... navy select ...................................
@@ -1212,7 +1221,7 @@ IF Mighty > 0 AND (switch < 4 OR switch = 5 OR switch = 6 OR switch = 9 OR switc
 		IF z < 15 THEN
 			CALL clrbot: PRINT force$(j) + " navy:" + STR$(navysize(j)) + " ships at "; city$(navyloc(j)); : TICK .5
 			LINE (shipx(j) - 9, shipy(j) - 5)-(shipx(j) + 16, shipy(j) + 9), 14, B
-			IF j = side THEN choose = -2: GOTO called
+			IF j = side THEN choose = -2: leave = 1: RETURN
 		END IF
 		NEXT j
 '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 1
@@ -1256,11 +1265,11 @@ IF Mighty > 0 AND (switch < 4 OR switch = 5 OR switch = 6 OR switch = 9 OR switc
 				IF cityp(i) = 0 GOTO selex
 				PRINT "Trying to paratroop to "; city$(i);
 				choose = i
-				GOTO called
+				leave = 1: RETURN
 				CASE 2
 				IF cityp(i) = 0 THEN CALL clrbot: PRINT "ILLEGAL CHOICE: "; city$(i); " is NEUTRAL"; : GOTO selex
 				choose = i
-				GOTO called
+				leave = 1: RETURN
 				END SELECT
 '............................................................................
 			END IF
@@ -1356,7 +1365,7 @@ clrplace:
 			row1 = row: row = yc \ 16 - tly - 1
 			IF row > size OR row < 1 THEN
 				IF row1 = -3 THEN
-					IF xc > 590 AND xc < 610 THEN side = 3 - side: choose = -1: GOTO called
+					IF xc > 590 AND xc < 610 THEN side = 3 - side: choose = -1: leave = 1: RETURN
 				END IF
 				GOTO selex
 			END IF
@@ -1366,7 +1375,7 @@ clrplace:
 			choose = row
 			TICK .1
 			GOSUB limits
-			EXIT SUB
+			leave = 3: RETURN
 		END IF
 
 	END IF                                          '#1
@@ -1379,19 +1388,19 @@ crsr:
 	DO: a$ = INKEY$: LOOP WHILE a$ = ""
 akey5:
 	IF ASC(a$) = 13 THEN RETURN
-	IF ASC(a$) = 2 THEN GOTO boss
+	IF ASC(a$) = 2 THEN leave = 2: RETURN
 	IF LEN(a$) = 2 GOTO arrows
-	IF switch = 3 THEN choose = -ASC(UCASE$(a$)): GOTO called
+	IF switch = 3 THEN choose = -ASC(UCASE$(a$)): leave = 1: RETURN
 	IF ASC(a$) = 27 THEN
 		IF indicate > 0 THEN CALL placearmy(indicate)
 		choose = -1
 		CALL ships
-		GOTO called
+		leave = 1: RETURN
 	END IF
 		row1 = row
 		FOR k = 1 TO size
 		c1$ = UCASE$(LEFT$(LTRIM$(mtx$(k)), 1))
-		IF c1$ = UCASE$(a$) THEN choose = k: GOSUB limits: GOTO called
+		IF c1$ = UCASE$(a$) THEN choose = k: GOSUB limits: leave = 1: RETURN
 		NEXT k
 	GOTO crsr
 arrows:
@@ -1412,7 +1421,7 @@ redux:
 				CALL showmove(side)
 				RETURN
 			CASE "A"
-				choose = 99: EXIT SUB
+				choose = 99: leave = 3: RETURN
 			CASE ";"
 				a$ = UCASE$(mtx$(0)): file$ = ""
 				SELECT CASE a$

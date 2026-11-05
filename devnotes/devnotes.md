@@ -31,7 +31,7 @@ and `EDIT.EXE` are removed from this branch, because the builds take their names
 | `MICKEY.BM` | The mouse routines (`MICKEY.BAS`) |
 | `QB64.BM` | What the game needs from PDS 7.1 that QB64 does not have: `DIR$` |
 | `SCRIPT.BM` | The hooks for the whole-game scripts: the seed, and the announcement of each wait for a key |
-| `EDIT.BAS` | The scenario editor, a program of its own (1,652 lines). It includes `EDIT.BI` and `QB64.BM` |
+| `EDIT.BAS` | The scenario editor, a program of its own (1,661 lines). It includes `EDIT.BI`, `QB64.BM` and `SCRIPT.BM` |
 | `EDIT.BI` | The editor's declarations, as they came |
 | `tests\rules_test.bas` | Unit tests, run by `qb64rust test` |
 | `tests\play.py` | Plays the scripts and compares their screens (`check`, `compare`, `record`, `coverage`, `explore`) |
@@ -90,6 +90,8 @@ and `EDIT.EXE` are removed from this branch, because the builds take their names
    and the boss screen. A `TICK` with a time above 0 returns at once when the game is scripted, and a saved
    game holds a fixed date (`scriptdate$` in `filer`, in place of `DATE$`). None of this
    does anything unless the environment variable `WW2_SEED` is set, so the game plays as before.
+   The editor has the same hooks in its `menu`, its boss screen, `Enput` (the scenario's description),
+   `plusminus` (a number to change) and `TICK`.
 
 10. **The PDS build files are removed:** `WW2.MAK`, `WW2.LNK`, `WW2MAKE.BTM` and the `.OBJ` files of the four
     modules. So are the shareware main module `WW2-S.BAS` and its `WW2-S.MAK` and `WW2-S.LNK`, which no longer
@@ -111,8 +113,40 @@ and `EDIT.EXE` are removed from this branch, because the builds take their names
       Starting Year menu did the same. QB 4.5 and PDS 7.1 drop a SUB's pending `GOSUB` entries when the
       SUB ends, so the original worked.
 
+    - Its `getyr` in `filer` ends by `RETURN` with `choose` below 0 where it ended the SUB, and the line
+      after `GOSUB getyr` ends the SUB (item 12).
+    - It has the hooks of `SCRIPT.BM` (item 9), so that a script can play it. It calls `scriptcheck`, not
+      `scriptstart`: the original editor never called `RANDOMIZE`, and it still does not.
+
     The editor's `menu` is the same code as the game's (`WW2C.BM`), and the game's `yesno` (`WW2.BAS`) is
-    the same as `yessir`. The game was not changed (`TODO.md`).
+    the same as `yessir`. Item 12 makes the same change in the game.
+
+12. **Every `GOSUB` routine of the game ends by `RETURN`.** Four routines left their SUB while their
+    `GOSUB` was pending, for the reason given in item 11:
+    - `selex` in `menu` (`WW2C.BM`), by `GOTO called` (9 places), `GOTO boss` (Ctrl+B) and `EXIT SUB`
+      (2 places). Now it sets `leave` (1, 2 or 3) and returns, and the lines after `GOSUB selex` make the
+      jump. This is the change made in the editor, with one more case for the two `EXIT SUB`s.
+    - `getyr` and `getsave` in `filer` (`WW2B.BM`), by `EXIT SUB` when no year or saved game was chosen. Now
+      they return with `choose` below 0, and the line after each `GOSUB` ends the SUB.
+    - `norden` in `airforce` (`WW2C.BM`), by `EXIT SUB` when it finds no target in 9 tries. Now it sets
+      `leave` to 3 and returns, and the line after each `GOSUB norden` ends the SUB.
+
+    What stopped the game before: picking an entry by its letter, or leaving a menu with Esc, while a
+    `GOSUB` routine waited on the menu. Then that routine's `RETURN` took the menu's entry and stopped the
+    program with "RETURN without GOSUB". The script `menus-gosub-1939-allied` plays the cases:
+    - a letter at Start Year (`getyr`);
+    - Editor, then `n` (`yesno`);
+    - Files, Quit, then Esc (`yesno`);
+    - a letter at Saved Games (`getsave`).
+
+    It also plays Esc at Start Year and at Saved Games, and F7 at a main menu. Those are the other new
+    exits of `getyr`, `getsave` and `selex`.
+
+    Before the change, the QB64Rust build never got past its first step: after `1` at Start Year, the
+    main menu did not come, and the run timed out. The message itself was not seen, since the window is
+    hidden. The other 37 scripts show the same screens as before. They do run `norden`'s give-up exit
+    (`WW2C.BM`, line 435). That exit left a stale entry on the stack, but in those games no later `RETURN`
+    took it.
 
 ## Not done yet
 
@@ -125,22 +159,29 @@ See [TODO.md](../TODO.md).
   screen was compared at four points and is identical, pixel for pixel, in both builds.
 - `qb64rust test tests`: 20 tests pass. They cover `airdist`, `starfin`, `occupy`, `bubble`, `canimove` and
   `void`.
-- The 37 whole-game scripts (`tests\scripts\`) play every scenario as each side to the end, with one or two
-  players, and three of them go through most of the menus. Both builds show the same screens at every
-  checkpoint, in two runs each (`play.py record`). The scripts run 82% of the game's lines with a statement
+- The 38 whole-game scripts (`tests\scripts\`) play every scenario as each side to the end, with one or two
+  players, and four of them go through most of the menus. Both builds show the same screens at every
+  checkpoint, in two runs each (`play.py record`). The scripts run 81% of the game's lines with a statement
   (`play.py coverage`).
 - QB64Rust 0.3.0 and QB64pe 4.7.0 both build `EDIT.BAS`. Both builds were played with the same timed keys,
   in a copy of this folder. The keys load 1939 by a letter at the Starting Year menu and open Technology.
   They then save the scenario back as 1939 and quit with `y`. Both builds exit with 0, and their screens are
   identical at all 7 checkpoints. The saved `WW1939.INI` and `EURO1939.DAT` hold the same lines as the
-  originals (with CRLF line ends), and `SHELL "copy"` made the two `.bak` files. There is no script or unit
-  test for the editor yet (`TODO.md`).
+  originals (with CRLF line ends), and `SHELL "copy"` made the two `.bak` files.
+- The script `edit-1939` plays the editor. It loads 1939, then changes a technology level, the cash, the fort
+  of Belgrade, the navy and the side. It saves the scenario as 1939, loads it again and quits. Besides the
+  screens, it checks the hashes of the saved `WW1939.INI` and `EURO1939.DAT` and of the two `.bak` files.
+  Both builds give the same screens and files, in two runs each.
 
 ## What this found in QB64Rust
 
 - `Interrupt 51, regs, regs` is rejected ("not supported yet: `Interrupt` as a statement"). QB64pe accepts it.
-- `ON LOCAL ERROR GOTO` is reported as "not supported yet". QB64pe rejects it too ("Name already in use"), so the
-  message could say that it is not QB64.
+- `ON LOCAL ERROR GOTO` was reported as "not supported yet". QB64pe rejects it too ("Name already in use
+  (ERROR)"). Since 2026-11-05 QB64Rust gives a plain error instead. It says the form is BASIC PDS 7.1's, and to
+  use `ON ERROR GOTO` with the handler in the main module, and `ON ERROR GOTO 0` before the SUB ends. The
+  `ON ERROR GOTO 0` matters: a handler set in a SUB stays active after the SUB returns, where `ON LOCAL ERROR`
+  ends with its SUB. QB64Rust's `verification\v17_d_err_on_local_error_sub` and `v17_d_on_error_sub_stays`
+  measure both.
 - A named `COMMON` block is rejected by both compilers, with a clearer message from QB64Rust.
 - **A SUB that ends with a `GOSUB` pending breaks the caller's next `RETURN`**, in QB64Rust as in QB64pe.
   QB64Rust keeps QB64pe's single `GOSUB` stack on purpose (QB64Rust's `study\00` §6, "Kept"). QB 4.5 and
@@ -149,6 +190,7 @@ See [TODO.md](../TODO.md).
   - QB 4.5 (QB64Rust's `tools\qb45\qb45.py`) returns from `ask` and goes on.
   - PDS 7.1 does the same in all three runs, under DOSBox: in QBX, and built with `BC /O /E /X`, with and
     without `/D` (2026-11-05).
-  - QB64pe and QB64Rust stop at that `RETURN` with "RETURN without GOSUB".
+  - QB64pe and QB64Rust stop at that `RETURN` with "RETURN without GOSUB". QB64Rust's
+    `verification\v17_d_gosub_left_in_sub` now tests this, so a later change to QB64Rust's stack would show.
 
   The editor depended on the PDS result (item 11 above).

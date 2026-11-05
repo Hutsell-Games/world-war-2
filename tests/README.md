@@ -34,7 +34,7 @@ reach it. Everything a run makes goes into `tests\out\`, which git ignores. A bu
 source file, the compiler or the screen hook changed. What a command prints also goes to
 `tests\out\last-<command>.txt`.
 
-A whole `check` of the 37 scripts takes about 35 seconds with `--jobs 6`. `record` of all of them takes a few
+A whole `check` of the 39 scripts takes about 35 seconds with `--jobs 6`. `record` of all of them takes a few
 minutes, because each script runs five times.
 
 ### When a check fails
@@ -77,9 +77,13 @@ The places a script can name (`play until <place>[:<letter>]`, `rule <place>[:<l
 | 1 | A pause that any key ends ("press a key", `TICK` of 0 or less) | `TICK`, `WW2B.BM` |
 | 2 | A menu. The letter is the first letter of the menu's title | `menu`, `WW2C.BM` |
 | 3 | A key or a mouse button | `Mickey`, `MICKEY.BM` |
-| 4 | The commander's name for the Hall of Fame (an `INPUT`) | `maxx`, `WW2B.BM` |
+| 4 | A line of text: the commander's name for the Hall of Fame (an `INPUT`); in the editor, the scenario's description | `maxx`, `WW2B.BM`; `Enput`, `EDIT.BAS` |
 | 5 | The news of a play-by-mail game | `WW2.BAS` |
-| 6 | The boss screen (Ctrl+B), which only Ctrl+B ends | `menu`, `WW2C.BM` |
+| 6 | The boss screen (Ctrl+B), which only Ctrl+B ends | `menu`, `WW2C.BM` and `EDIT.BAS` |
+| 7 | In the editor, a number to change: Up, Down, PgUp and PgDn change it, Enter or Esc ends | `plusminus`, `EDIT.BAS` |
+
+The editor (`EDIT.BAS`) has the same hooks as the game, except the seed: it never called `RANDOMIZE`. Its
+places are 2, 4, 6 and 7. It has no place 1, since its `TICK` only pauses and never waits for a key.
 
 Menu letters seen so far:
 
@@ -97,6 +101,11 @@ Menu letters seen so far:
 | `2:A` | AirBase |
 | `2:B` | Balance |
 | `2:F` | From, Fortify, Flip Stack |
+| `2:O` | Options (Files) |
+| `2:Q` | Quit: the Yes or No of Editor and of Files, Quit |
+
+The editor's menus: `2:S` Starting Year and Save As, `2:M` its main menu, `2:A` Allied Tech (`2:A` also Axis
+Tech), `2:C` City, `2:N` Navy, `2:B` Begin Month, `2:L` Leave Edit.
 
 The navy's menu is titled with its number of ships (`2:5` for " 5 Ships"); `play until 2` stops at any menu.
 A rule for a letter answers every menu with that letter. A script that must tell them apart uses `prompt` and
@@ -115,7 +124,15 @@ Each script is a keys file with lines that set up its run, which `play.py` reads
 #! seed 1940             the random seed (default 1)
 #! cfg side=2 player=1   fields of the ww2.cfg the game starts with
 #! timeout 300           the longest the run may take, in seconds
+#! program edit          the program the script plays: ww2 (the default) or edit (EDIT.BAS)
+#! files WW1939.INI      files to check after the run, by their hashes
 ```
+
+Each file a `#! files` line names becomes a last checkpoint, `file <name> <hash>`, or `file <name> missing`.
+The hash takes CRLF line ends as LF, and the name matches the file whatever its case.
+
+`edit-1939` passes on Windows only. Its two `.bak` files are made by the editor's `SHELL "copy"`, a Windows
+command, so on another system they would be recorded as `missing`.
 
 The `ww2.cfg` of a run is written fresh. By default it is one player on the Allied side, difficulty 3, no
 sound, keyboard only (`mighty=0`) and no autosave. The fields are `CFG_FIELDS` in `play.py`. Each run starts
@@ -152,8 +169,10 @@ the probes only get unstuck at the main menu. `make_scripts.py` reports it and g
 | `commands-1939-allied` | Every report of Inform; F1 (help), F3, F4 to F6, F9 and F10 at the main menu; the menus of COMMANDS, UTILITY and Files; a game saved and loaded again |
 | `utility-1939-allied` | The settings of UTILITY: players, sound, display speed, weather, autosave, end conditions, high scores, Vary Start, balance, side |
 | `orders-1939-axis` | The orders of a turn with choices other than the first: moves and Cancel; COMMANDS Fortify, Join, Detach, Supply, Rotate, Army Drill and Static; the navy sailed; the air force against a navy and to a new base; Tech with and without the money |
+| `menus-gosub-1939-allied` | Menus answered by a letter or Esc inside a `GOSUB` routine, which once stopped the game with "RETURN without GOSUB" (`devnotes/devnotes.md`, item 12): Start Year, Editor then No, Files Quit then Esc, Saved Games. It also plays the other exits that item 12 rewrote: Esc at Start Year, Esc at Saved Games after Load and after Save, and F7. It then quits with Files, Quit, Yes |
+| `edit-1939` | The editor: Esc at Starting Year; loads 1939; changes Technology, Cash, a fort, the navy and the side; saves as 1939, loads again, quits. It checks the saved scenario and map and the two `.bak` files |
 
-Each then ends every turn to the end of the game.
+The first three then end every turn to the end of the game.
 
 ### Writing a script by hand
 
@@ -191,9 +210,10 @@ Points that matter:
 and a table per SUB, the least covered first (`tests\out\coverage\subs.txt`). With no script named, it also
 runs the unit tests with `qb64rust test tests --coverage` and says how many statements they reach that no
 script does. With scripts named, it counts only those scripts; `--unit-tests` adds the unit tests. With the
-37 scripts and the unit tests, 82% of the lines with a statement run (2026-11-04: 3,908 of 4,751 lines run
-in full or in part). Of the SUBs that the refactoring is about, `smarts` runs 93% of its statements, `battle`
-91%, `tupdate` 85%, `airforce` 82% and `navy` 79%.
+38 scripts of the game and the unit tests, 81% of the game's lines with a statement run (2026-11-05: 3,931 of
+4,839 lines run in full or in part). The editor's report is `report-edit.txt`: `edit-1939` runs 58% of its
+lines with a statement (786 of 1,360). Of the SUBs that the refactoring is about, `smarts` runs 93% of its
+statements, `battle` 91%, `tupdate` 85%, `airforce` 82% and `navy` 79%.
 
 Not covered:
 
@@ -202,7 +222,8 @@ Not covered:
 - **Paratroop.** After its first wait no further wait is announced; not looked into yet.
 - **Play by mail** (Begin PBM, the PBM news) and PBM Drv, whose menu shows the drive the game runs from.
 - **Sound and the DOS programs.** They are not ported (`TODO.md`).
-- **The editor** (`EDIT.BAS`). It is a program of its own, and no script or unit test covers it yet
-  (`TODO.md`).
+- **Most of the editor** (`EDIT.BAS`). `edit-1939` covers Technology, Cash, Fortify, Navy Edit, Side, Save,
+  Load and Quit, but not Army, Navy Move, Air Force, Cities or Capital, and no unit test calls its SUBs
+  (`TODO.md`). `coverage` reports the editor apart: `tests\out\coverage\report-edit.txt` and `subs-edit.txt`.
 - **The boss screen.** It ends only with Ctrl+B, which a keys file cannot give.
 - **Timed pauses as a player sees them.** Under a script they return at once.
