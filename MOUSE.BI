@@ -17,5 +17,5 @@ DECLARE SUB MouseBorder (row1%, col1%, row2%, col2%)
 DECLARE SUB MouseDriver (m0%, m1%, m2%, m3%)
 DECLARE SUB MouseInit ()
 
-COMMON SHARED /uitools/ MousePresent AS INTEGER
+DIM SHARED MousePresent AS INTEGER
 

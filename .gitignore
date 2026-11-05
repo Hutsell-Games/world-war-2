@@ -1,0 +1,3 @@
+# Builds, runs and reports of tests/play.py.
+tests/out/
+*.pyc

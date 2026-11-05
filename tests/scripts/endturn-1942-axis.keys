@@ -1,0 +1,50 @@
+# The 1942 scenario as the Axis side, played by ending every turn at once; the computer plays the Allied side.
+# A digest at each of the 20 main menus and two at the Hall of Fame, then Quit.
+# Written by tests/make_scripts.py.
+#! seed 1942
+#! cfg side=2
+
+# Waits that any key ends; End Turn and End Game: Yes; a Retreat menu: its first city.
+rule 1 key space
+rule 2:R key enter
+rule 2:E text y
+
+# The title menu: Start NEW Game. Start Year: the scenario's entry.
+play until 2:W
+digest
+text s
+play until 2:S
+key down
+prompt
+key down
+prompt
+key down
+prompt
+digest
+key enter
+
+# Each main menu.
+repeat 20
+play until 2:M
+digest
+text e
+end
+
+# The game is over: the Hall of Fame asks for the commander's name. No digest while INPUT
+# waits: its cursor blinks by the clock. A digest at the pause after the name, and at the table
+# of new high scores.
+play until 4
+text Tester
+key enter
+prompt
+digest
+key space
+prompt
+digest
+key space
+
+# Back at the title menu: Quit, and a key for END's "Press any key to continue".
+play until 2:W
+digest
+text q
+repeat space

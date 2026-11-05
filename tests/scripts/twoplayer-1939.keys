@@ -1,0 +1,47 @@
+# The 1939 scenario with two players, each played by Enter at every menu (the command each menu highlights).
+# A digest at each of the 9 main menus and two at the Hall of Fame, then Quit.
+# Written by tests/make_scripts.py.
+#! seed 1939
+#! cfg side=1 player=2
+
+# Waits that any key ends; End Turn and End Game: Yes; any other menu: Enter.
+rule 1 key space
+rule 2 key enter
+rule 2:E text y
+
+# The title menu: Start NEW Game. Start Year: the scenario's entry.
+play until 2:W
+digest
+text s
+play until 2:S
+digest
+key enter
+
+# Each main menu.
+repeat 9
+play until 2:M
+digest
+key enter
+end
+
+# The game is over: the Hall of Fame asks for each player's commander. No digest while INPUT
+# waits: its cursor blinks by the clock. A digest at the pause after the names, and at the table
+# of new high scores.
+play until 4
+text Allies
+key enter
+prompt
+text Axis
+key enter
+prompt
+digest
+key space
+prompt
+digest
+key space
+
+# Back at the title menu: Quit, and a key for END's "Press any key to continue".
+play until 2:W
+digest
+text q
+repeat space

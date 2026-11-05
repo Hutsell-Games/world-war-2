@@ -1,0 +1,80 @@
+# The 1941 scenario as the Axis side, played by Enter at every menu (the command each menu highlights); the computer plays the Allied side.
+# A digest at each of the 78 main menus and two at the Hall of Fame, then Quit.
+# Written by tests/make_scripts.py.
+#! seed 1941
+#! cfg side=2
+
+# Waits that any key ends; End Turn and End Game: Yes; any other menu: Enter.
+rule 1 key space
+rule 2 key enter
+rule 2:E text y
+
+# The title menu: Start NEW Game. Start Year: the scenario's entry.
+play until 2:W
+digest
+text s
+play until 2:S
+key down
+prompt
+key down
+prompt
+digest
+key enter
+
+# Each main menu (END TURN where Enter changes nothing).
+repeat 25
+play until 2:M
+digest
+key enter
+end
+play until 2:M
+digest
+text e
+repeat 16
+play until 2:M
+digest
+key enter
+end
+play until 2:M
+digest
+text e
+repeat 6
+play until 2:M
+digest
+key enter
+end
+play until 2:M
+digest
+text e
+repeat 5
+play until 2:M
+digest
+key enter
+end
+play until 2:M
+digest
+text e
+repeat 22
+play until 2:M
+digest
+key enter
+end
+
+# The game is over: the Hall of Fame asks for the commander's name. No digest while INPUT
+# waits: its cursor blinks by the clock. A digest at the pause after the name, and at the table
+# of new high scores.
+play until 4
+text Tester
+key enter
+prompt
+digest
+key space
+prompt
+digest
+key space
+
+# Back at the title menu: Quit, and a key for END's "Press any key to continue".
+play until 2:W
+digest
+text q
+repeat space

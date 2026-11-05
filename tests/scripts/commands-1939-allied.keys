@@ -1,0 +1,181 @@
+# The 1939 scenario as the Allied side, written by hand: every report of Inform; the function keys
+# of the main menu; the menus of COMMANDS, UTILITY and Files, each left with Esc; a game saved in
+# September 1939 and loaded again in October; then END TURN every month to the end, the Hall of
+# Fame, and Quit.
+#! seed 1939
+
+# Waits that any key ends.
+rule 1 key space
+
+# The title menu: Start NEW Game. Start Year: 1939.
+play until 2:W
+text s
+play until 2:S
+key enter
+
+# Inform: each report, a digest of its screen, then back to the main menu.
+# Allied (the first entry starting with A).
+play until 2:M
+digest
+text i
+prompt
+digest
+text a
+prompt
+digest
+key space
+# Axis: the second entry.
+play until 2:M
+text i
+prompt
+key down
+prompt
+key enter
+prompt
+digest
+key space
+# Cities.
+play until 2:M
+text i
+prompt
+text c
+prompt
+digest
+key space
+# Forces.
+play until 2:M
+text i
+prompt
+text f
+prompt
+digest
+key space
+# Technology.
+play until 2:M
+text i
+prompt
+text t
+prompt
+digest
+key space
+# Battles.
+play until 2:M
+text i
+prompt
+text b
+prompt
+digest
+key space
+# Clr Battles: the last entry, one up from the first.
+play until 2:M
+text i
+prompt
+key up
+prompt
+key enter
+prompt
+digest
+key space
+
+# The function keys of the main menu: F1 the help screen, F3 the map drawn again, F4 to F6, F9 and
+# F10 the reports. Each: a digest at the next wait, then a space. At the main menu itself (after F3)
+# the space chooses nothing, and the menu waits again.
+play until 2:M
+key f1
+prompt
+digest
+key space
+play until 2:M
+key f3
+prompt
+digest
+key space
+play until 2:M
+key f4
+prompt
+digest
+key space
+play until 2:M
+key f5
+prompt
+digest
+key space
+play until 2:M
+key f6
+prompt
+digest
+key space
+play until 2:M
+key f9
+prompt
+digest
+key space
+play until 2:M
+key f10
+prompt
+digest
+key space
+
+# COMMANDS, UTILITY and Files: each menu, left with Esc.
+play until 2:M
+text c
+prompt
+digest
+key esc
+play until 2:M
+text u
+prompt
+digest
+key esc
+play until 2:M
+text f
+prompt
+digest
+key esc
+
+# Files, Save: the first slot.
+play until 2:M
+text f
+prompt
+text s
+prompt
+digest
+key enter
+prompt
+digest
+key space
+
+# END TURN to October 1939.
+rule 2:R key enter
+rule 2:E text y
+play until 2:M
+digest
+text e
+
+# Files, Load: the game saved in September.
+play until 2:M
+digest
+text f
+prompt
+text l
+prompt
+digest
+key enter
+
+# From September again: END TURN every month to the end.
+rule 2:M text e
+play until 4
+text Tester
+key enter
+prompt
+digest
+key space
+prompt
+digest
+key space
+
+# Back at the title menu: Quit, and a key for END's "Press any key to continue".
+play until 2:W
+digest
+text q
+repeat space

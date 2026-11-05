@@ -1,0 +1,112 @@
+# The 1939 scenario as the Allied side, written by hand: the settings of UTILITY, each changed and most
+# changed back; then END TURN every month to the end, the Hall of Fame, and Quit. Left out: Keyboard
+# (it turns the mouse on), Begin PBM, and PBM Drv, whose menu shows the drive the game runs from.
+#! seed 1939
+
+# Waits that any key ends.
+rule 1 key space
+
+# The title menu: Start NEW Game. Start Year: 1939.
+play until 2:W
+text s
+play until 2:S
+key enter
+
+# UTILITY. 1 Player: two players, and back.
+play until 2:M
+digest
+text u
+play until 2:U
+digest
+text 1
+play until 2:U
+digest
+text 2
+# Noise: the SOUNDS menu, Quiet.
+play until 2:U
+text n
+play until 2:S
+digest
+text q
+# Display: the Speed menu, Fast, then Normal again.
+play until 2:U
+text d
+play until 2:S
+digest
+text f
+play until 2:U
+digest
+text d
+play until 2:S
+text n
+# Weather off and on, Autosave on and off.
+play until 2:U
+text w
+play until 2:U
+digest
+text w
+play until 2:U
+text a
+play until 2:U
+digest
+text a
+# End Cond.
+play until 2:U
+text e
+prompt
+digest
+key esc
+# Hi Scores: the scores, and NO to clearing them.
+play until 2:U
+text h
+play until 2:C
+digest
+text n
+# Vary Start: the Start Year menu again (1939), then armies placed at random.
+play until 2:U
+text v
+play until 2:S
+digest
+key enter
+play until 2:U
+digest
+# Balance: the menu with the commanders' faces, Allied +, then Esc to the main menu.
+text b
+play until 2:B
+digest
+text a
+play until 2:B
+digest
+key esc
+
+# Side: now the Axis side; then back to the Allied side.
+play until 2:M
+digest
+text u
+play until 2:U
+text s
+play until 2:M
+digest
+text u
+play until 2:U
+text s
+
+# END TURN every month to the end.
+rule 2:M text e
+rule 2:R key enter
+rule 2:E text y
+play until 4
+text Tester
+key enter
+prompt
+digest
+key space
+prompt
+digest
+key space
+
+# Back at the title menu: Quit, and a key for END's "Press any key to continue".
+play until 2:W
+digest
+text q
+repeat space

@@ -87,4 +87,14 @@ DIM SHARED teklev(2, 8), tek$(3), airsize(2), unitkind$(6), nation(maxarmy)
 DIM SHARED graphic(1 TO 6000), country$(10), forecast$(4)
 DIM SHARED atkfac(maxarmy), deffac(maxarmy), movfac(maxarmy), costfac(maxarmy), airloc(2)
 DIM SHARED featx(19), featy(19), shipx(2), shipy(2), gci(12)
-
+'==========================================================================
+' Shared by the whole program. In the PDS build these lines were in
+' WW2.BAS and WW2B.BAS; they are here so that a test file gets them too.
+'==========================================================================
+'$INCLUDE: 'general.bi'
+'$INCLUDE: 'mouse.bi'
+DIM SHARED yourname$(10), skorz&(2, 5)
+DIM SHARED usai(80), uki(80), fri(80), poli(80), rusi(80), geri(80), alship(100)
+DIM SHARED para(60), axship(100), drop(140), ike1(80), ike2(80), ike3(80), ike4(80)
+DIM SHARED parasw
+DIM SHARED scripted

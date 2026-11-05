@@ -1,0 +1,159 @@
+# The 1939 scenario as the Axis side, written by hand: the orders of a turn with choices other than
+# the first, which the enter-* scripts take. In September 1939: two moves and a Cancel; COMMANDS
+# Fortify, Join, Detach, Supply, Rotate, Army Drill and Static; the navy sailed; the air force against
+# a navy out of range and to a new base. In October: Tech twice, the second time without the money.
+# Then END TURN every month to the end, the Hall of Fame, and Quit. Not here: Paratroop (no wait
+# comes after it; not looked into).
+#! seed 1939
+#! cfg side=2
+
+# Waits that any key ends.
+rule 1 key space
+
+# The title menu: Start NEW Game. Start Year: 1939.
+play until 2:W
+text s
+play until 2:S
+key enter
+
+# Moves: the second army of the From menu (Hannover) to the second city of its To menu.
+play until 2:M
+digest
+text m
+prompt
+key down
+prompt
+key enter
+prompt
+key down
+prompt
+digest
+key enter
+# Moves: the first army (Berlin) to the first city.
+play until 2:M
+text m
+prompt
+key enter
+prompt
+key enter
+
+# COMMANDS, Cancel: the Cancel menu lists both moves; cancel the first (Berlin).
+play until 2:M
+text c
+prompt
+text c
+prompt
+digest
+key enter
+# Back at COMMANDS: Fortify the first city (Berlin).
+prompt
+text f
+prompt
+digest
+key enter
+# Join: no two armies in one city.
+prompt
+text j
+# Detach: from the first city of the From menu.
+prompt
+digest
+text d
+prompt
+digest
+key enter
+# Supply: every army has supplies.
+prompt
+text s
+# Rotate: the Flip Stack menu, the stack the detach made; its first army to the top.
+prompt
+text r
+prompt
+digest
+key enter
+prompt
+digest
+key enter
+# Army Drill: the first city, then the first army of the Which menu.
+prompt
+text a
+prompt
+digest
+key enter
+prompt
+digest
+key enter
+# Static, the last entry (PgDn): a menu with NONE in it; Esc.
+prompt
+key pagedown
+prompt
+key enter
+prompt
+digest
+key esc
+# Esc: back to the main menu (at the main menu itself, Esc shows it again).
+prompt
+key esc
+
+# Navy: Sail, and the first city of its To menu.
+play until 2:M
+digest
+text n
+play until 2
+digest
+text s
+play until 2:T
+digest
+key enter
+
+# Air Force: Navy Atk (the Allied navy is out of range, and the Planes menu comes back), then
+# AirBase and the first city of its menu. A Planes menu after that: Esc.
+play until 2:M
+digest
+text a
+play until 2:P
+digest
+text n
+play until 2:P
+digest
+text a
+play until 2:A
+digest
+key enter
+rule 2:P key esc
+
+# END TURN to October 1939 (Fortify used the money September had).
+rule 2:R key enter
+rule 2:E text y
+play until 2:M
+digest
+text e
+
+# October 1939. Tech: the first technology, then again with too little money left; then Esc.
+play until 2:M
+text t
+prompt
+digest
+key enter
+prompt
+key enter
+prompt
+digest
+key esc
+
+# END TURN every month to the end.
+rule 2:M text e
+play until 4
+text Tester
+key enter
+prompt
+digest
+key space
+prompt
+digest
+key space
+
+# Back at the title menu: Quit, and a key for END's "Press any key to continue".
+play until 2:W
+digest
+text q
+repeat space
