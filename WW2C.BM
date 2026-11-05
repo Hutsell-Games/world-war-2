@@ -994,14 +994,18 @@ SUB gloat (x, y)
 IF noise > 1 THEN
 	SELECT CASE x
 		CASE 1
+			' The PLAY tune is also the fallback when the MIDI file cannot be
+			' played (QB64 port).
+			played = 0
 			IF sblast$ = "M" THEN
 				CALL putflag(x, z)
 				IF z <> 4 THEN
-					SHELL "playmidi america.mid /FMT:General /Q"
+					played = playsound("america.mid")
 				ELSE
-					SHELL "playmidi france.mid /FMT:General /Q"
+					played = playsound("france.mid")
 				END IF
-			ELSE
+			END IF
+			IF NOT played THEN
 				'It's A Long Way to Tipperary
 				PLAY "MSMFt145o3c8d8e-4e-4..e-16f8g8a-4o4c4.P8o4c8o3b-8a-4f2a-4e-2P4"
 				IF y > 0 THEN
@@ -1010,9 +1014,9 @@ IF noise > 1 THEN
 				END IF
 			END IF
 		CASE 2
-		IF sblast$ = "M" THEN
-			SHELL "playmidi wagner.mid /FMT:General /Q"
-		ELSE
+		played = 0
+		IF sblast$ = "M" THEN played = playsound("wagner.mid")
+		IF NOT played THEN
 			'Valkyries
 			PLAY "mFMSt160o1a8.e16a8o2c4.o1a4."
 			PLAY "o2c8.o1a16o2c8e4.c4."

@@ -963,13 +963,11 @@ END SELECT
 END SUB
 
 SUB sndblst (file$, flag%)
-' The original began with ON LOCAL ERROR GOTO nosound, which QB64 does not have. Nothing here
-' raises an error in QB64: DIR$ gives "" for a missing file, and SHELL of a missing program
-' returns. So the handler and its "Sound Driver Error" message are gone.
-IF LEN(DIR$(file$)) = 0 THEN EXIT SUB
+' The original began with ON LOCAL ERROR GOTO nosound, which QB64 does not have, and
+' played the file with the DOS programs plany.exe (S and M) or sound.exe (Z). playsound
+' (QB64.BM) plays it with QB64's sound instead, and does nothing for a missing file.
 IF sblast$ = "" OR noise = 0 THEN EXIT SUB
-IF sblast$ = "Z" THEN SHELL "sound " + file$ + " 5 1 8": EXIT SUB
-SHELL "plany.exe " + file$ + plany$
+played = playsound(file$)
 END SUB
 
 SUB starfin (star, fin, who)

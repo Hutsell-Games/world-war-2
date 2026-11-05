@@ -62,7 +62,7 @@ COMMON SHARED choose%, tlx%, tly%, size%, mtx$(), colour%, hilite%
 COMMON SHARED cityx(), cityy(), cityv(), cityp(), city$(), filel, country$()
 COMMON SHARED cash(), cntrl(), matrix(), income(), anima(), rflag
 COMMON SHARED nflag, bold, f3key, turbo!, rr(), tname$(), rusky, autosave
-COMMON SHARED image(), force$(), armyloc(), player, aggress!, plany$
+COMMON SHARED image(), force$(), armyloc(), player, aggress!
 COMMON SHARED armysize(), unittype(), armyexper(), supply(), mnth$()
 COMMON SHARED rcity(), vicflag(), tracks(), batwon(), cityo()
 COMMON SHARED armymove(), mnth, yr, array(), mflag, side, sblast$, race()

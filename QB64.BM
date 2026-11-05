@@ -13,3 +13,128 @@ DO WHILE RIGHT$(f$, 1) = CHR$(92) OR RIGHT$(f$, 1) = "/"
 LOOP
 DIR$ = UCASE$(f$)
 END FUNCTION
+
+' The DOS game played its sound files with DOS programs: plany.exe or
+' sound.exe for a .VOC, playmidi.exe for a .MID. playsound plays them with
+' QB64's own sound, and gives -1 if it played the file, 0 if the file is
+' missing or QB64 cannot play it. Like the SHELL it replaces, it returns
+' when the sound ends, so the game waits.
+' A key pressed while it plays ends the sound at once: MIDI tunes last up
+' to 14 seconds. The key stays for the game to read. playsound watches for
+' it with _KEYHIT, whose buffer is not the one INKEY$ and INPUT read.
+FUNCTION playsound% (file$)
+DIM h AS LONG, w AS STRING
+playsound% = 0
+IF UCASE$(RIGHT$(file$, 4)) = ".VOC" THEN
+	w = vocwav$(file$)
+	IF w = "" THEN EXIT FUNCTION
+	h = _SNDOPEN(w, "memory")
+ELSEIF UCASE$(RIGHT$(file$, 4)) = ".MID" THEN
+	w = midifile$(file$)
+	IF w = "" THEN EXIT FUNCTION
+	h = _SNDOPEN(w, "memory")
+ELSE
+	IF NOT _FILEEXISTS(file$) THEN EXIT FUNCTION
+	h = _SNDOPEN(file$)
+END IF
+IF h <= 0 THEN EXIT FUNCTION
+_KEYCLEAR 2
+_SNDPLAY h
+DO WHILE _SNDPLAYING(h)
+	IF _KEYHIT > 0 THEN _SNDSTOP h: EXIT DO
+	_LIMIT 100
+LOOP
+_SNDCLOSE h
+playsound% = -1
+END FUNCTION
+
+' A Creative Voice File (.VOC) as a WAV file in a string, or "" if the file
+' is missing or not a VOC. QB64 cannot open a VOC, but it can open a WAV
+' from memory. The game's VOCs hold 8-bit unsigned mono samples, as a WAV
+' of 8 bits does. Blocks: 1 sound (with its rate), 2 more sound, 3 silence,
+' 6 and 7 the start and end of a repeat. SHIPS.VOC has no end block, so the
+' file's end also ends the sound. A repeat count of N is taken to mean N
+' more plays, so ENGINE.VOC and GUN.VOC (count 3) play 4 times. That
+' reading is not checked against Creative's description of the format.
+FUNCTION vocwav$ (file$)
+DIM d AS STRING, b AS STRING, s AS STRING, pcm AS STRING, rep AS STRING
+DIM f AS INTEGER, t AS INTEGER, inrep AS INTEGER
+DIM p AS LONG, n AS LONG, rate AS LONG, reps AS LONG, i AS LONG
+vocwav$ = ""
+IF NOT _FILEEXISTS(file$) THEN EXIT FUNCTION
+f = FREEFILE
+OPEN file$ FOR BINARY AS #f
+d = SPACE$(LOF(f))
+GET #f, 1, d
+CLOSE #f
+IF LEFT$(d, 19) <> "Creative Voice File" OR LEN(d) < 26 THEN EXIT FUNCTION
+p = (CVI(MID$(d, 21, 2)) AND 65535) + 1
+DO WHILE p + 3 <= LEN(d)
+	t = ASC(d, p)
+	IF t = 0 THEN EXIT DO
+	n = CVL(MID$(d, p + 1, 3) + CHR$(0))
+	b = MID$(d, p + 4, n)
+	s = ""
+	SELECT CASE t
+	CASE 1
+		IF LEN(b) >= 2 THEN
+			IF rate = 0 THEN rate = 1000000 \ (256 - ASC(b, 1))
+			IF ASC(b, 2) = 0 THEN s = MID$(b, 3)
+		END IF
+	CASE 2
+		s = b
+	CASE 3
+		IF LEN(b) >= 3 THEN s = STRING$((CVI(LEFT$(b, 2)) AND 65535) + 1, 128)
+	CASE 6
+		IF LEN(b) >= 2 THEN reps = CVI(LEFT$(b, 2)) AND 65535
+		IF reps = 65535 THEN reps = 0
+		inrep = -1: rep = ""
+	CASE 7
+		FOR i = 1 TO reps
+			pcm = pcm + rep
+		NEXT i
+		inrep = 0
+	END SELECT
+	pcm = pcm + s
+	IF inrep THEN rep = rep + s
+	p = p + 4 + n
+LOOP
+IF rate = 0 OR pcm = "" THEN EXIT FUNCTION
+vocwav$ = "RIFF" + MKL$(36 + LEN(pcm)) + "WAVE" + "fmt " + MKL$(16) + MKI$(1) + MKI$(1) + MKL$(rate) + MKL$(rate) + MKI$(1) + MKI$(8) + "data" + MKL$(LEN(pcm)) + pcm
+END FUNCTION
+
+' A MIDI file in a string with its broken tracks left out, or "" if the
+' file is missing or has no whole track. FRANCE.MID declares 25 tracks, but
+' after the 21st the file holds other data. The 7th and last track of
+' WAGNER.MID is a piece of BASIC source. DOS's playmidi.exe played them
+' anyway; QB64 will not open them as they are. A track is kept while it
+' lies wholly inside the file and ends with an end-of-track event.
+FUNCTION midifile$ (file$)
+DIM d AS STRING, keep AS STRING, chunk AS STRING
+DIM f AS INTEGER, count AS INTEGER, i AS INTEGER
+DIM p AS LONG, n AS _INTEGER64
+midifile$ = ""
+IF NOT _FILEEXISTS(file$) THEN EXIT FUNCTION
+f = FREEFILE
+OPEN file$ FOR BINARY AS #f
+d = SPACE$(LOF(f))
+GET #f, 1, d
+CLOSE #f
+IF LEFT$(d, 4) <> "MThd" OR LEN(d) < 14 THEN EXIT FUNCTION
+p = 15
+DO WHILE p + 7 <= LEN(d) AND count < 255
+	IF MID$(d, p, 4) <> "MTrk" THEN EXIT DO
+	n = 0
+	FOR i = 4 TO 7
+		n = n * 256 + ASC(d, p + i)
+	NEXT i
+	IF n < 3 OR p + 7 + n > LEN(d) THEN EXIT DO
+	chunk = MID$(d, p, 8 + n)
+	IF RIGHT$(chunk, 3) <> CHR$(255) + CHR$(47) + CHR$(0) THEN EXIT DO
+	keep = keep + chunk
+	count = count + 1
+	p = p + 8 + n
+LOOP
+IF count = 0 THEN EXIT FUNCTION
+midifile$ = LEFT$(d, 10) + CHR$(0) + CHR$(count) + MID$(d, 13, 2) + keep
+END FUNCTION

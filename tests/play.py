@@ -4,7 +4,8 @@
     python tests/play.py check   [script ...]   the QB64Rust build against the recorded screens
     python tests/play.py compare [script ...]   the QB64pe and QB64Rust builds against each other
     python tests/play.py record  [script ...]   both builds, twice each; writes <script>.screen
-    python tests/play.py coverage [script ...]  a coverage build; the lines the scripts reach
+    python tests/play.py coverage [--unit-tests] [script ...]
+                                                a coverage build; the lines the scripts and the unit tests reach
     python tests/play.py explore <keys file>    one run, a PNG of every state, stops at the next wait
 
 A script is tests/scripts/<name>.keys, a keys file of QB64Rust's screen-state check
@@ -565,8 +566,9 @@ def full_copy(script: Script) -> Path:
 
 
 def cmd_coverage(args: argparse.Namespace, tools: Tools) -> int:
-    """Runs the scripts with a coverage build and reports the lines they reach (QB64Rust's
-    tools/coverage/coverage.py). The report goes to tests/out/coverage/report.txt."""
+    """Runs the scripts with a coverage build, and the unit tests with `qb64rust test --coverage`
+    when no script is named or --unit-tests is given, and reports the lines they reach (QB64Rust's tools/coverage/coverage.py).
+    The report goes to tests/out/coverage/report.txt."""
     scripts = find_scripts(args.scripts)
     exe = build(tools, "rust", coverage=True)
     folder = OUT / "coverage"
@@ -579,7 +581,14 @@ def cmd_coverage(args: argparse.Namespace, tools: Tools) -> int:
     for run in runs:
         problem = run_problem(run)
         print(f"{'FAIL' if problem else 'ok  '}  {run.label}" + (f": {problem}" if problem else ""))
-    have = [str(p) for p in counts.values() if p.is_file()]
+    script_counts = [p for p in counts.values() if p.is_file()]
+    have = [str(p) for p in script_counts]
+    if args.unit_tests or not args.scripts:
+        unit = unit_test_counts(tools, folder, args.jobs)
+        if unit:
+            have.append(str(unit))
+            added = reached_only_by(unit, script_counts)
+            print(f"  the unit tests reach {added} statements that no script reaches")
     if not have:
         raise SetupError("no run wrote its counts")
     tool = tools.qb64rust_repo / "tools" / "coverage" / "coverage.py"
@@ -609,8 +618,51 @@ def cmd_coverage(args: argparse.Namespace, tools: Tools) -> int:
     return 0
 
 
-def sub_table(count_files: list[Path]) -> str:
-    """The statements each SUB and FUNCTION has and runs, from coverage records, the least covered first."""
+def unit_test_counts(tools: Tools, folder: Path, jobs: int) -> Path | None:
+    """Runs the unit tests (`qb64rust test tests --coverage`) and writes their counts to
+    folder/unit-tests.txt, with the game's files named as the scripts' records name them. None when
+    no test wrote a record."""
+    raw = folder / "unit-tests-raw.txt"
+    log = folder / "unit-tests-log.txt"
+    print("running the unit tests with --coverage ...", flush=True)
+    env = dict(os.environ, QB64RUST_COVERAGE=str(raw))
+    cmd = [str(tools.exes["rust"]), "test", "tests", "--coverage", "--jobs", str(jobs)]
+    with open(log, "wb") as out:
+        rc = subprocess.run(cmd, stdout=out, stderr=subprocess.STDOUT, cwd=GAME, env=env).returncode
+    print(f"{'FAIL' if rc else 'ok  '}  unit tests" + (f": exit code {rc}; see {rel(log)}" if rc else ""))
+    if not raw.is_file():
+        return None
+    rebased = folder / "unit-tests.txt"
+    rebased.write_text(rebase_records(raw.read_text(encoding="latin-1")), encoding="latin-1")
+    return rebased
+
+
+def rebase_records(text: str) -> str:
+    """Coverage records of the unit tests, made from tests/, as records of the game's folder. A file
+    named `../<name>` becomes `<name>`; the test entry point, the test library and the test file are
+    left out with their counts, as they are not files of the game."""
+    out: list[str] = []
+    keep: set[str] = set()
+    for line in text.splitlines():
+        parts = line.split("\t")
+        if parts[0] == "file" and len(parts) == 4:
+            name = parts[3]
+            if name.startswith("../") and "/" not in name[3:]:
+                keep.add(parts[1])
+                out.append("\t".join([*parts[:3], name[3:]]))
+        elif len(parts) >= 4 and parts[0].isdigit():
+            if parts[0] in keep:
+                out.append(line)
+        else:
+            if line.startswith("coverage "):
+                keep = set()
+            out.append(line)
+    return "\n".join(out) + "\n"
+
+
+def statement_counts(count_files: list[Path]) -> dict[tuple[str, int, int], int]:
+    """Each statement's count, merged over the records of the files: by (file name in lower case,
+    line, column)."""
     counts: dict[tuple[str, int, int], int] = {}
     for path in count_files:
         names: dict[str, str] = {}
@@ -621,6 +673,18 @@ def sub_table(count_files: list[Path]) -> str:
             elif len(parts) >= 4 and parts[0] in names and parts[1].isdigit():
                 key = (names[parts[0]].lower(), int(parts[1]), int(parts[2]))
                 counts[key] = counts.get(key, 0) + int(parts[3])
+    return counts
+
+
+def reached_only_by(unit: Path, scripts: list[Path]) -> int:
+    """How many statements the counts of `unit` ran that no record of `scripts` ran."""
+    by_scripts = statement_counts(scripts)
+    return sum(1 for key, n in statement_counts([unit]).items() if n and not by_scripts.get(key))
+
+
+def sub_table(count_files: list[Path]) -> str:
+    """The statements each SUB and FUNCTION has and runs, from coverage records, the least covered first."""
+    counts = statement_counts(count_files)
     # Each file's lines, mapped to the procedure they are in.
     starts: dict[str, list[tuple[int, str]]] = {}
     for name in {k[0] for k in counts}:
@@ -708,7 +772,9 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("scripts", nargs="*")
     p = sub.add_parser("record", help="both builds, twice each; writes the recorded screens")
     p.add_argument("scripts", nargs="*")
-    p = sub.add_parser("coverage", help="the lines of the game the scripts reach")
+    p = sub.add_parser("coverage", help="the lines of the game the scripts and the unit tests reach")
+    p.add_argument("--unit-tests", action="store_true",
+                   help="run the unit tests too when scripts are named (they always run when none is)")
     p.add_argument("scripts", nargs="*")
     p = sub.add_parser("explore", help="one run with a PNG of every state; stops at the next wait")
     p.add_argument("--compiler", choices=COMPILERS, default="rust")

@@ -95,6 +95,37 @@ class ScriptTest(unittest.TestCase):
             self.assertEqual((Path(d) / "WW2.CFG").read_text(), '1,0,3,1,2,0,0,0,0,1,0,1,"",0\n')
 
 
+class CoverageTest(unittest.TestCase):
+    UNIT = (
+        "coverage 2\n"
+        "file\t0\taaaa\trules_test.bas.test-entry.bas\n"
+        "file\t1\tbbbb\trules_test.bas\n"
+        "file\t2\tcccc\t../ww2b.bm\n"
+        "0\t3\t1\t1\t\n"
+        "1\t9\t1\t1\t\n"
+        "2\t10\t1\t1\tLEN\n"
+        "2\t11\t1\t0\t\n"
+        "end\n"
+    )
+
+    def test_rebase_keeps_only_the_games_files(self):
+        self.assertEqual(
+            play.rebase_records(self.UNIT * 2),
+            ("coverage 2\nfile\t2\tcccc\tww2b.bm\n2\t10\t1\t1\tLEN\n2\t11\t1\t0\t\nend\n") * 2,
+        )
+
+    def test_reached_only_by_the_unit_tests(self):
+        with tempfile.TemporaryDirectory() as d:
+            unit, script = Path(d) / "unit.txt", Path(d) / "script.txt"
+            unit.write_text(play.rebase_records(self.UNIT), encoding="latin-1")
+            # The script ran line 11, which the unit tests did not, and not line 10, which they did.
+            script.write_text(
+                "coverage 2\nfile\t5\tcccc\tww2b.bm\n5\t10\t1\t0\t\n5\t11\t1\t4\t\nend\n", encoding="latin-1"
+            )
+            self.assertEqual(play.reached_only_by(unit, [script]), 1)
+            self.assertEqual(play.statement_counts([unit, script])[("ww2b.bm", 11, 1)], 4)
+
+
 class MakeScriptsTest(unittest.TestCase):
     def test_body_folds_runs_into_repeat_blocks(self):
         import make_scripts

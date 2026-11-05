@@ -22,7 +22,7 @@ python tests\play.py check                  # every script with the QB64Rust bui
 python tests\play.py check enter-1940-axis  # one script
 python tests\play.py compare                # the QB64pe and QB64Rust builds against each other
 python tests\play.py record [script ...]    # both builds, twice each; writes scripts\<name>.screen
-python tests\play.py coverage               # the lines and the SUBs of the game the scripts reach
+python tests\play.py coverage               # the lines and the SUBs of the game the scripts and unit tests reach
 python tests\play.py explore <keys file>    # one run, a PNG of every screen; for writing a script
 python tests\make_scripts.py                # writes the generated scripts again (below)
 python -m unittest discover -s tests -p "test_*.py"   # the tests of play.py and make_scripts.py
@@ -187,10 +187,13 @@ Points that matter:
 
 ## What the scripts do not cover
 
-`play.py coverage` writes the lines no script reaches (`tests\out\coverage\report.txt`) and a table per SUB,
-the least covered first (`tests\out\coverage\subs.txt`). With the 37 scripts, 82% of the lines with a
-statement run; of the SUBs that the refactoring is about, `smarts` runs 93% of its statements, `battle` 91%,
-`tupdate` 85%, `airforce` 82% and `navy` 79%.
+`play.py coverage` writes the lines that no script and no unit test reaches (`tests\out\coverage\report.txt`)
+and a table per SUB, the least covered first (`tests\out\coverage\subs.txt`). With no script named, it also
+runs the unit tests with `qb64rust test tests --coverage` and says how many statements they reach that no
+script does. With scripts named, it counts only those scripts; `--unit-tests` adds the unit tests. With the
+37 scripts and the unit tests, 82% of the lines with a statement run (2026-11-04: 3,908 of 4,751 lines run
+in full or in part). Of the SUBs that the refactoring is about, `smarts` runs 93% of its statements, `battle`
+91%, `tupdate` 85%, `airforce` 82% and `navy` 79%.
 
 Not covered:
 
@@ -198,6 +201,8 @@ Not covered:
   file has mouse steps, but no script uses them yet.
 - **Paratroop.** After its first wait no further wait is announced; not looked into yet.
 - **Play by mail** (Begin PBM, the PBM news) and PBM Drv, whose menu shows the drive the game runs from.
-- **Sound, the Editor and the DOS programs.** They are not ported (`TODO.md`).
+- **Sound and the DOS programs.** They are not ported (`TODO.md`).
+- **The editor** (`EDIT.BAS`). It is a program of its own, and no script or unit test covers it yet
+  (`TODO.md`).
 - **The boss screen.** It ends only with Ctrl+B, which a keys file cannot give.
 - **Timed pauses as a player sees them.** Under a script they return at once.

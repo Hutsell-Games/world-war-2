@@ -24,15 +24,24 @@ Open work on the QB64 port (branch `qb64rust`). Remove an item when it is done.
 - **Play by mail.** Begin PBM and the PBM news have no script.
 - **`twoplayer-1944`.** It is not written: in October 1948, Enter at a Recruit menu brings the same menu
   back for ever (`tests/README.md`, "Generated scripts"). Decide whether that is a bug of the game.
-- **More unit tests** for SUBs that draw nothing: `normal`, `retreat`, `evaluate`, `stax`, `commander`,
-  `gloat`.
 
 ## The game
 
+- **`normal` draws high.** It sums 12 RNDs and subtracts 5.5, but the sum averages 6. So every draw
+  centers on `xbar + SQR(vary) / 2`, not on `xbar` (`TestNormalStaysInRange` in `tests/rules_test.bas`).
+  Decide whether that is a bug of the game. Fixing it changes the games, so the scripts would need
+  `record` again.
 - **Separate the rules from the drawing** in the large SUBs (`battle`, `navy`, `airforce`, `tupdate`,
   `smarts`), one at a time. Run `play.py check` after each.
-- **The Editor.** `RUN "edit.exe"` on the main menu still starts the DOS editor. `EDIT.BAS` is not ported.
-- **Sound.** The `SHELL` calls to `playmidi`, `plany.exe` and `sound` do nothing on Windows today.
+- **The game's `menu` and `yesno` may stop with "RETURN without GOSUB".** The editor did, and its
+  `menu` and `yessir` are the same code (`devnotes/devnotes.md`, item 11). In the game, answering a
+  `yesno` prompt (the main menu's Editor, and Files then Quit) with `y`, `n` or Esc likely stops the program. So may
+  any other `GOSUB` routine that calls `menu`. Not run yet. Check it with a script, then make the same
+  change to `menu` in `WW2C.BM`.
+- **Test the editor.** It has no script and no unit test. Its menus read keys with no `announce`, so a
+  script needs the hooks of `SCRIPT.BM` first: include `script.bm` in `EDIT.BAS`, and call `announce`
+  in its `menu` and `TICK`. Then write a script that loads, edits and saves a scenario, and checks the
+  saved files.
 - **The title and burning-city screens.** `ww2title.exe` and `ww2city.exe` are DOS programs with no
   source, so their `SHELL` lines are comments. The screens are missing.
 - **The mouse cursor's limits.** `MouseBorder` no longer confines the real cursor. Only the position the

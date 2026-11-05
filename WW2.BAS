@@ -50,15 +50,6 @@ CALL filer(0)
 
 IF COMMAND$ <> "" THEN
 	sblast$ = UCASE$(COMMAND$)
-	IF sblast$ = "S" THEN
-	OPEN "I", 1, "x.cfg"
-		INPUT #1, IRQ, DMA, PORT
-		IF IRQ = 0 THEN IRQ = 7
-		IF DMA = 0 THEN DMA = 544
-		IF PORT = 0 THEN PORT = 1
-		plany$ = " -i:" + LTRIM$(STR$(IRQ)) + " -d:" + LTRIM$(STR$(DMA)) + " -p:" + LTRIM$(STR$(PORT))
-	CLOSE #1
-	END IF
 	CALL sndfx(8)
 END IF
 TICK -1

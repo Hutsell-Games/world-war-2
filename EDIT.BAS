@@ -826,7 +826,7 @@ getyr:
 	mtx$(size) = t$
 	array(size) = size
 	DO WHILE t$ <> "" AND size < 21
-		t$ = DIR$
+		t$ = DIR$("")
 		IF t$ = "" THEN EXIT DO
 		size = size + 1: mtx$(size) = t$: array(size) = size
 	LOOP
@@ -1077,7 +1077,10 @@ sel1:
 		     END IF
 	END SELECT
 	LINE (8 * (tlx + 1), 16 * (tly + row + 1))-(8 * (tlx + LEN(mtx$(row)) + 1) - 1, 16 * (tly + row + 2) - 1), 7, B
+	' QB64: selex always ends by RETURN, so that no GOSUB stays pending (devnotes.md)
 	GOSUB selex
+	IF leave = 1 GOTO called
+	IF leave = 2 GOTO boss
 	IF switch <> 3 GOTO reglr
 	IF a$ = "H" THEN choose = 1: GOTO called
 	IF ASC(a$) = 13 THEN choose = 2: GOTO called
@@ -1092,24 +1095,25 @@ reglr:
 	GOTO sel1
 '같같같같같같같같같같같같같같같같같같같같같같같같같같같같같같같같같같같같같같
 selex:
+	leave = 0
 '............................................................................
 crsr:
 	DO: a$ = INKEY$: LOOP WHILE a$ = ""
 akey5:
 	IF ASC(a$) = 13 THEN RETURN
-	IF ASC(a$) = 2 THEN GOTO boss
+	IF ASC(a$) = 2 THEN leave = 2: RETURN
 	IF LEN(a$) = 2 GOTO arrows
-	IF switch = 3 THEN choose = -ASC(UCASE$(a$)): GOTO called
+	IF switch = 3 THEN choose = -ASC(UCASE$(a$)): leave = 1: RETURN
 	IF ASC(a$) = 27 THEN
 		IF indicate > 0 THEN CALL placearmy(indicate)
 		choose = -1
 		CALL ships
-		GOTO called
+		leave = 1: RETURN
 	END IF
 		row1 = row
 		FOR k = 1 TO size
 		c1$ = UCASE$(LEFT$(LTRIM$(mtx$(k)), 1))
-		IF c1$ = UCASE$(a$) THEN choose = k: GOSUB limits: GOTO called
+		IF c1$ = UCASE$(a$) THEN choose = k: GOSUB limits: leave = 1: RETURN
 		NEXT k
 	GOTO crsr
 arrows:
@@ -1127,7 +1131,7 @@ redoit:
 				CALL choices(wide)
 				RETURN
 			CASE "A"
-				choose = 99: GOTO called
+				choose = 99: leave = 1: RETURN
 			CASE ";"
 				a$ = UCASE$(mtx$(0)): file$ = ""
 				SELECT CASE a$
@@ -1645,3 +1649,4 @@ start! = TIMER
 DO WHILE TIMER - start! < sec! AND INKEY$ = "": LOOP
 END SUB
 
+'$INCLUDE: 'qb64.bm'

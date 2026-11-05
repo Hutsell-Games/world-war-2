@@ -1,0 +1,83 @@
+# Builds the game (WW2.BAS) and the scenario editor (EDIT.BAS) with QB64Rust on Windows.
+# The result is an artifact named world-war-2: ww2.exe and edit.exe with the data files they
+# read, ready to unzip and play.
+name: Build
+
+# When something reaches main (a merge or a push to it), or by hand with "Run workflow".
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # The QB64Rust commit the game is built with. Change it to take a newer compiler.
+  QB64RUST_REF: main
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      # Keep the files' bytes as committed: the runner's default would turn LF into CR LF.
+      - run: git config --global core.autocrlf false
+
+      - uses: actions/checkout@v7
+        with:
+          path: game
+
+      - uses: actions/checkout@v7
+        with:
+          repository: davidshq/QB64Rust
+          ref: ${{ env.QB64RUST_REF }}
+          path: qb64rust
+
+      # Installs the Rust toolchain named in QB64Rust's rust-toolchain.toml.
+      - run: rustup toolchain install
+        working-directory: qb64rust
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: qb64rust
+
+      - run: cargo build --release --locked
+        working-directory: qb64rust
+
+      # The C++ toolchain qb64rust builds with (llvm-mingw, a 190 MB download). Its version is
+      # pinned in toolchain.rs, so the cache is kept until that file changes.
+      - uses: actions/cache@v6
+        with:
+          path: ~\AppData\Local\qb64rust\toolchain
+          key: qb64rust-toolchain-${{ hashFiles('qb64rust/crates/driver/src/toolchain.rs') }}
+
+      - run: qb64rust\target\release\qb64rust.exe toolchain install
+
+      # The names matter: the game's Editor entry runs edit.exe, and the editor's PLAY GAME runs
+      # ww2.exe. The original DOS programs of those names are on main only.
+      - name: Build the game and the editor
+        working-directory: game
+        run: |
+          ..\qb64rust\target\release\qb64rust.exe -x WW2.BAS -o ww2.exe
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          ..\qb64rust\target\release\qb64rust.exe -x EDIT.BAS -o edit.exe
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      # The two programs and the top-level files they read. Sources, DOS programs, objects and
+      # documents are left out, as tests/play.py leaves them out of a run's folder.
+      - name: Put the playable folder together
+        run: |
+          $notData = '.bas', '.bi', '.bm', '.exe', '.obj', '.lnk', '.mak', '.zip', '.md', '.qlb',
+                     '.com', '.drv', '.bat', '.btm'
+          New-Item -ItemType Directory dist | Out-Null
+          Get-ChildItem -File game |
+            Where-Object { -not $_.Name.StartsWith('.') -and $notData -notcontains $_.Extension.ToLower() } |
+            Copy-Item -Destination dist
+          Copy-Item game\ww2.exe, game\edit.exe, game\README.md -Destination dist
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: world-war-2
+          path: dist
+          if-no-files-found: error

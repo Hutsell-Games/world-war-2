@@ -10,11 +10,25 @@ and QB64pe, and so that its SUBs can be tested. It builds one program, `WW2.BAS`
 source files (`WW2.BI`, `WW2A.BM`, `WW2B.BM`, `WW2C.BM`, `MICKEY.BM`, `QB64.BM`, `SCRIPT.BM`):
 
 ```
-qb64rust -x WW2.BAS -o ww2game.exe
+qb64rust -x WW2.BAS -o ww2.exe
 ```
 
-Run the program from this folder: it reads its data files from beside itself. `WW2.EXE` is the original
-DOS program; do not overwrite it.
+The scenario editor is a program of its own, `EDIT.BAS`. The game's Editor entry runs it as
+`edit.exe`, and its PLAY GAME runs the game as `ww2.exe`, so keep those names:
+
+```
+qb64rust -x EDIT.BAS -o edit.exe
+```
+
+The builds are not committed (`.gitignore`). The original DOS programs `WW2.EXE` and `EDIT.EXE`
+are not on this branch, because the builds take their names; they are on `main`. Each merge
+into `main` also builds both programs on GitHub Actions (it can be started by hand too, under
+Actions, Build, Run workflow): the run's artifact `world-war-2` holds
+them with the data files, ready to play.
+
+Run the program from this folder: it reads its data files from beside itself. With no option the
+game beeps. `ww2 S` plays the sound effects (the `.VOC` files), and `ww2 M` plays the
+music (the `.MID` files) as well.
 
 The tests are described in [tests/README.md](tests/README.md). Work still to do is in [TODO.md](TODO.md).
 
