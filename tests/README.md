@@ -125,11 +125,12 @@ Each script is a keys file with lines that set up its run, which `play.py` reads
 #! cfg side=2 player=1   fields of the ww2.cfg the game starts with
 #! timeout 300           the longest the run may take, in seconds
 #! program edit          the program the script plays: ww2 (the default) or edit (EDIT.BAS)
-#! files WW1939.INI      files to check after the run, by their hashes
+#! files scenarios/WW1939.INI    files to check after the run, by their hashes
 ```
 
 Each file a `#! files` line names becomes a last checkpoint, `file <name> <hash>`, or `file <name> missing`.
-The hash takes CRLF line ends as LF, and the name matches the file whatever its case.
+The hash takes CRLF line ends as LF. A name may start with a folder, written with `/`. Each part of the
+name matches whatever its case.
 
 `edit-1939` passes on Windows only. Its two `.bak` files are made by the editor's `SHELL "copy"`, a Windows
 command, so on another system they would be recorded as `missing`.
@@ -169,7 +170,7 @@ the probes only get unstuck at the main menu. `make_scripts.py` reports it and g
 | `commands-1939-allied` | Every report of Inform; F1 (help), F3, F4 to F6, F9 and F10 at the main menu; the menus of COMMANDS, UTILITY and Files; a game saved and loaded again |
 | `utility-1939-allied` | The settings of UTILITY: players, sound, display speed, weather, autosave, end conditions, high scores, Vary Start, balance, side |
 | `orders-1939-axis` | The orders of a turn with choices other than the first: moves and Cancel; COMMANDS Fortify, Join, Detach, Supply, Rotate, Army Drill and Static; the navy sailed; the air force against a navy and to a new base; Tech with and without the money |
-| `menus-gosub-1939-allied` | Menus answered by a letter or Esc inside a `GOSUB` routine, which once stopped the game with "RETURN without GOSUB" (`devnotes/devnotes.md`, item 12): Start Year, Editor then No, Files Quit then Esc, Saved Games. It also plays the other exits that item 12 rewrote: Esc at Start Year, Esc at Saved Games after Load and after Save, and F7. It then quits with Files, Quit, Yes |
+| `menus-gosub-1939-allied` | Menus answered by a letter or Esc inside a `GOSUB` routine, which once stopped the game with "RETURN without GOSUB" (`docs/devnotes.md`, item 12): Start Year, Editor then No, Files Quit then Esc, Saved Games. It also plays the other exits that item 12 rewrote: Esc at Start Year, Esc at Saved Games after Load and after Save, and F7. It then quits with Files, Quit, Yes |
 | `edit-1939` | The editor: Esc at Starting Year; loads 1939; changes Technology, Cash, a fort, the navy and the side; saves as 1939, loads again, quits. It checks the saved scenario and map and the two `.bak` files |
 
 The first three then end every turn to the end of the game.

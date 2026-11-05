@@ -45,7 +45,7 @@ Open work on the QB64 port (branch `qb64rust`). Remove an item when it is done.
   Load and Quit. Army (recruit, remove, rotate), Navy Move, Air Force, Cities and Capital have no script.
 - **The mouse exits of `menu` have no script.** `selex` (`WW2C.BM`) leaves by the mouse in seven places:
   lines 1194, 1215, 1224, 1268, 1272, 1368 and 1378. They were rewritten to end by `RETURN`
-  (`devnotes/devnotes.md`, item 12), but the scripts play with `mighty=0`, so none runs them. First find out
+  (`docs/devnotes.md`, item 12), but the scripts play with `mighty=0`, so none runs them. First find out
   whether a keys file can give a mouse click (QB64Rust's `tools\screen\README.md`). If it cannot, try a script
   with `cfg mighty=1` and keys only, which runs the `Mickey` branch of `selex` but not the seven exits.
 - **A rare crash in `play.py check`.** Once, in a `check` of all the scripts with `--jobs 6`,
@@ -53,6 +53,6 @@ Open work on the QB64 port (branch `qb64rust`). Remove an item when it is done.
   build. Run alone three times, it passed each time. Find out whether it comes from the QB64Rust runtime.
 - **The title and burning-city screens.** `ww2title.exe` and `ww2city.exe` were DOS programs with no
   source, so their `SHELL` lines are comments and the screens are missing. Pictures of both, taken in
-  DOSBox, are `devnotes/WW2TITLE.png` and `devnotes/WW2CITY.png`. They could be drawn again in BASIC.
+  DOSBox, are `docs/WW2TITLE.png` and `docs/WW2CITY.png`. They could be drawn again in BASIC.
 - **The mouse cursor's limits.** `MouseBorder` no longer confines the real cursor. Only the position the
   game reads is held inside the limits.

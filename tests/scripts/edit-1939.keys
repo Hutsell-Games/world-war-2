@@ -4,7 +4,7 @@
 # back, and quits. The run's saved files are checked by their hashes (the "#! files" line):
 # the scenario and map as saved, and the backups that SHELL "copy" made of the originals.
 #! program edit
-#! files WW1939.INI EURO1939.DAT WW1939.BAK EURO1939.BAK
+#! files scenarios/WW1939.INI scenarios/EURO1939.DAT scenarios/WW1939.BAK scenarios/EURO1939.BAK
 
 # Starting Year: Esc, which brings the same menu back (getyr's exit by RETURN), then the first
 # entry, EURO1939.DAT.

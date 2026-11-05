@@ -1,6 +1,6 @@
 # Menus answered by a letter or Esc inside a GOSUB routine, written by hand. Choosing a menu entry
 # by its letter, or leaving with Esc, once left a GOSUB of menu pending, and the next RETURN
-# stopped the game with "RETURN without GOSUB" (devnotes/devnotes.md, item 12). These steps once
+# stopped the game with "RETURN without GOSUB" (docs/devnotes.md, item 12). These steps once
 # did that:
 #   - Start Year: 1939 by its letter (filer's getyr);
 #   - Editor, then No by its letter (yesno);

@@ -218,9 +218,9 @@ c = 9: s = 1: IF attack > 30 THEN s = 2: c = 8
 CALL image2(force$(s) + " forces attack " + city$(armyloc(defend)), c)
 
 t$ = "fort" + LTRIM$(STR$(z)) + ".vga"
-IF LEN(DIR$(t$)) > 0 THEN
+IF LEN(DIR$(GFXDIR + t$)) > 0 THEN
 	DEF SEG = VARSEG(graphic(1))
-	BLOAD t$, VARPTR(graphic(1))
+	BLOAD GFXDIR + t$, VARPTR(graphic(1))
 	DEF SEG
 	PUT (550, 270), graphic, PSET
 END IF

@@ -22,7 +22,7 @@ pb$ = CURDIR$
 SCREEN 12
 s = 1
 DEF SEG = VARSEG(graphic(1))
-BLOAD "w2icon.vga", VARPTR(graphic(1))
+BLOAD GFXDIR + "w2icon.vga", VARPTR(graphic(1))
 DEF SEG
 PUT (100, 100), graphic, PSET
 GET (101, 101)-(115, 114), usai
@@ -34,7 +34,7 @@ GET (123, 115)-(137, 128), rusi
 GET (117, 129)-(139, 142), alship
 GET (117, 143)-(139, 156), axship
 DEF SEG = VARSEG(graphic(1))
-BLOAD "w2xtra.vga", VARPTR(graphic(1))
+BLOAD GFXDIR + "w2xtra.vga", VARPTR(graphic(1))
 DEF SEG
 PUT (100, 100), graphic, PSET
 GET (101, 101)-(115, 112), para

@@ -91,6 +91,7 @@ DIM SHARED featx(19), featy(19), shipx(2), shipy(2), gci(12)
 ' Shared by the whole program. In the PDS build these lines were in
 ' WW2.BAS and WW2B.BAS; they are here so that a test file gets them too.
 '==========================================================================
+'$INCLUDE: 'folders.bi'
 '$INCLUDE: 'general.bi'
 '$INCLUDE: 'mouse.bi'
 DIM SHARED yourname$(10), skorz&(2, 5)

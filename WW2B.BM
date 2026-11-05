@@ -232,8 +232,8 @@ bolshevik:
 	TICK -2
 	EXIT SUB
 END IF
-IF LEN(DIR$(t$)) = 0 THEN EXIT SUB
-OPEN "I", 1, t$
+IF LEN(DIR$(SCNDIR + t$)) = 0 THEN EXIT SUB
+OPEN "I", 1, SCNDIR + t$
 '       x=trigger date  y=side affected (1-2)
 '       z=event code:   1=victory  2=cash  3=ships  4=airforce
 '                       10-18 = technology (1-8)
@@ -307,7 +307,7 @@ SELECT CASE switch
 	CASE 1, 4
 redo:
 	mtx$(0) = "Start Year"
-	t$ = DIR$("euro*.dat")
+	t$ = DIR$(SCNDIR + "euro*.dat")
 	colour = 3
 	' QB64: getyr and getsave always end by RETURN, so that no GOSUB stays pending (devnotes.md)
 	GOSUB getyr
@@ -319,8 +319,8 @@ redo:
 	GOSUB wbase
 	PRINT "..";
 	t$ = "ww" + begin$ + ".ini"
-	IF LEN(DIR$(t$)) < 1 THEN CALL clrbot: COLOR 14: LOCATE 29, 1: PRINT "INITILIZATION FILE NOT FOUND :"; t$; : begin$ = "": TICK 5: CALL clrbot: EXIT SUB
-	OPEN "I", 1, t$
+	IF LEN(DIR$(SCNDIR + t$)) < 1 THEN CALL clrbot: COLOR 14: LOCATE 29, 1: PRINT "INITILIZATION FILE NOT FOUND :"; t$; : begin$ = "": TICK 5: CALL clrbot: EXIT SUB
+	OPEN "I", 1, SCNDIR + t$
 	INPUT #1, scenario$
 	INPUT #1, mnth, yr
 '               set end game conditions
@@ -369,7 +369,7 @@ NEXT i
 	IF begin$ <> "1939" THEN begin$ = "1940"
 
 	GOSUB wbase
-	IF LEN(DIR$(t$)) < 1 THEN CALL clrbot: COLOR 14: LOCATE 29, 1: PRINT "FILE NOT FOUND :"; t$; : begin$ = "": TICK 5: CALL clrbot: EXIT SUB
+	IF LEN(DIR$(SCNDIR + t$)) < 1 THEN CALL clrbot: COLOR 14: LOCATE 29, 1: PRINT "FILE NOT FOUND :"; t$; : begin$ = "": TICK 5: CALL clrbot: EXIT SUB
 
 	OPEN "I", 1, file$
 	INPUT #1, scenario$, begin$, a$
@@ -445,7 +445,7 @@ END SELECT
 EXIT SUB
 ':::::::::::::::::::::::::::::::::: BASE Conditions :::::::::::::::::::::::::
 wbase:
-	OPEN "I", 1, "ww2base.ini"
+	OPEN "I", 1, SCNDIR + "ww2base.ini"
 	FOR i = 0 TO 2: INPUT #1, force$(i): NEXT i
 	FOR i = 1 TO 12: INPUT #1, mnth$(i): NEXT i
 	FOR k = 1 TO 8: INPUT #1, tname$(k): NEXT k
@@ -466,11 +466,11 @@ wbase:
 '...........................................map.............................
 ' 1=US 2=German 3=UK 4=French 5=Polish 6=Russian 7=Italian 8=Generic Allied
 ' 7th position : shows location of matching text. If > 95 then IS invasion port
-	t$ = "euro1940.dat": IF begin$ = "1939" OR LEN(DIR$(t$)) = 0 THEN t$ = "euro1939.dat"
+	t$ = "euro1940.dat": IF begin$ = "1939" OR LEN(DIR$(SCNDIR + t$)) = 0 THEN t$ = "euro1939.dat"
 	flag = 0
 refile:
 	PRINT "...";
-	OPEN "I", 1, t$
+	OPEN "I", 1, SCNDIR + t$
 	vptotal = 0
 	FOR k = 1 TO 2: income(k) = 0: cntrl(k) = 0: NEXT k
 	FOR k = 1 TO ncity
@@ -962,7 +962,7 @@ SELECT CASE k
 		CASE ELSE: t$ = "faul.vga": a$ = " Ultra  "
 	END SELECT
 END SELECT
-	BLOAD t$, VARPTR(graphic(1))
+	BLOAD GFXDIR + t$, VARPTR(graphic(1))
 	DEF SEG
 	IF x = 1 THEN k = 0: COLOR 7
 	PUT (565, 100), graphic, PSET

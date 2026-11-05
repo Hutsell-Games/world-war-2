@@ -64,8 +64,9 @@ jobs:
           ..\qb64rust\target\release\qb64rust.exe -x EDIT.BAS -o edit.exe
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-      # The two programs and the top-level files they read. Sources, DOS programs, objects and
-      # documents are left out, as tests/play.py leaves them out of a run's folder.
+      # The two programs, the top-level files they read and the data folders (FOLDERS.BI), and
+      # the game's own documents in docs. Sources, DOS programs, objects and the developer notes
+      # are left out, as tests/play.py leaves them out of a run's folder.
       - name: Put the playable folder together
         run: |
           $notData = '.bas', '.bi', '.bm', '.exe', '.obj', '.lnk', '.mak', '.zip', '.md', '.qlb',
@@ -75,6 +76,9 @@ jobs:
             Where-Object { -not $_.Name.StartsWith('.') -and $notData -notcontains $_.Extension.ToLower() } |
             Copy-Item -Destination dist
           Copy-Item game\ww2.exe, game\edit.exe, game\README.md -Destination dist
+          Copy-Item game\graphics, game\sound, game\scenarios -Destination dist -Recurse
+          New-Item -ItemType Directory dist\docs | Out-Null
+          Copy-Item game\docs\WW2.DOC, game\docs\WW2.TXT, game\docs\RELEASE_NOTES.TXT -Destination dist\docs
 
       - uses: actions/upload-artifact@v7
         with:

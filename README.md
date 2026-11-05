@@ -28,10 +28,13 @@ into `main` also builds both programs on GitHub Actions (it can be started by ha
 Actions, Build, Run workflow): the run's artifact `world-war-2` holds
 them with the data files, ready to play.
 
-Run the program from this folder: it reads its data files from beside itself. With no option the
+Run the program from this folder. It reads its pictures and help screens from `graphics`, its
+sounds from `sound` and its scenarios from `scenarios`. Its settings (`WW2.CFG`), saved games and
+high scores stay beside the program. With no option the
 game beeps. `ww2 S` plays the sound effects (the `.VOC` files), and `ww2 M` plays the
 music (the `.MID` files) as well.
 
 The tests are described in [tests/README.md](tests/README.md). Work still to do is in [TODO.md](TODO.md).
 
-`README.TXT` and `WW2.DOC` are the original documentation of the game.
+The original documentation of the game is in `docs`: the manual `WW2.DOC`, the same text
+without its contents page and with `@` before each heading (`WW2.TXT`), and `RELEASE_NOTES.TXT`. The notes on the port are in [docs/devnotes.md](docs/devnotes.md).

@@ -112,6 +112,17 @@ class ScriptTest(unittest.TestCase):
             self.assertEqual(play.entries(STATE + "\n".join(lines).encode() + b"\n")[1:],
                              [line.encode() for line in lines])
 
+    def test_file_entries_in_a_folder(self):
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "Scenarios").mkdir()
+            (Path(d) / "Scenarios" / "ww1939.ini").write_bytes(b"a\n")
+            names = ["scenarios/WW1939.INI", "scenarios/none.dat", "nofolder/a.dat", "Scenarios"]
+            lines = play.file_entries(Path(d), names).decode().splitlines()
+            # Each part matches whatever its case; a folder is not a file.
+            self.assertEqual(lines[0].split()[:2], ["file", "scenarios/WW1939.INI"])
+            self.assertEqual(lines[1:], ["file scenarios/none.dat missing",
+                                         "file nofolder/a.dat missing", "file Scenarios missing"])
+
     def test_files_only_after_a_run_that_ended_well(self):
         with tempfile.TemporaryDirectory() as d:
             (Path(d) / "a.dat").write_bytes(b"a\n")

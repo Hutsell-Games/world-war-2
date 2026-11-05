@@ -56,6 +56,7 @@ COMMON SHARED TCR, TSF, atkfac(), deffac(), movfac(), costfac()
 COMMON SHARED airloc(), weather, forecast$(), pcode, featx(), featy()
 COMMON SHARED shipx(), shipy(), scenario$, pb$, gci()
 '==========================================================================
+'$INCLUDE: 'folders.bi'
 CONST ncity = 58, maxarmy = 60
 DIM SHARED cityx(ncity), cityy(ncity), cityv(ncity), cityp(ncity), city$(ncity), rcity(7)
 DIM SHARED cash(2), control(2), matrix(ncity, 8), income(2), anima(300)

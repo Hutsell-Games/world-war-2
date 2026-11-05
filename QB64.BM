@@ -35,20 +35,22 @@ END FUNCTION
 ' A key pressed while it plays ends the sound at once: MIDI tunes last up
 ' to 14 seconds. The key stays for the game to read. playsound watches for
 ' it with _KEYHIT, whose buffer is not the one INKEY$ and INPUT read.
+' file$ is a bare name, such as "ding.voc": the file is in SNDDIR.
 FUNCTION playsound% (file$)
-DIM h AS LONG, w AS STRING
+DIM h AS LONG, w AS STRING, f AS STRING
 playsound% = 0
-IF UCASE$(RIGHT$(file$, 4)) = ".VOC" THEN
-	w = vocwav$(file$)
+f = SNDDIR + file$
+IF UCASE$(RIGHT$(f, 4)) = ".VOC" THEN
+	w = vocwav$(f)
 	IF w = "" THEN EXIT FUNCTION
 	h = _SNDOPEN(w, "memory")
-ELSEIF UCASE$(RIGHT$(file$, 4)) = ".MID" THEN
-	w = midifile$(file$)
+ELSEIF UCASE$(RIGHT$(f, 4)) = ".MID" THEN
+	w = midifile$(f)
 	IF w = "" THEN EXIT FUNCTION
 	h = _SNDOPEN(w, "memory")
 ELSE
-	IF NOT _FILEEXISTS(file$) THEN EXIT FUNCTION
-	h = _SNDOPEN(file$)
+	IF NOT _FILEEXISTS(f) THEN EXIT FUNCTION
+	h = _SNDOPEN(f)
 END IF
 IF h <= 0 THEN EXIT FUNCTION
 _KEYCLEAR 2

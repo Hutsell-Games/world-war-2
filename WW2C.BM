@@ -48,7 +48,7 @@ mtx$(4) = "AirBase": IF airsize(who) < 1 THEN mtx$(4) = "-"
 tlx = 67: tly = 15: size = 4
 
 DEF SEG = VARSEG(graphic(1))
-BLOAD "airk.vga", VARPTR(graphic(1))
+BLOAD GFXDIR + "airk.vga", VARPTR(graphic(1))
 DEF SEG
 PUT (560, 100), graphic, PSET
 x = cityx(airloc(who)): y = cityy(airloc(who))
@@ -271,7 +271,7 @@ shotdown:
 				IF pct! > .9 THEN pct! = .9
 				IF RND > pct! THEN
 					DEF SEG = VARSEG(graphic(1))
-					BLOAD "shotd.vga", VARPTR(graphic(1))
+					BLOAD GFXDIR + "shotd.vga", VARPTR(graphic(1))
 					DEF SEG
 					PUT (560, 100), graphic, PSET
 					CALL sndfx(8)
@@ -723,7 +723,7 @@ LINE (2, 66)-(27, 90), 3, BF: LINE (2, 66)-(27, 90), 10, B
 LINE (478, 68)-(522, 95), 3, BF: LINE (478, 68)-(522, 95), 10, B
 '.................................France.....& North Sea Coast..............
 PSET (1, 240), 10
-OPEN "I", 1, "europe.grf"
+OPEN "I", 1, GFXDIR + "europe.grf"
 FOR k = 1 TO 7: INPUT #1, a$: DRAW a$: NEXT k
 '..................................Spain.......................
 PSET (1, 411), 10
@@ -805,9 +805,9 @@ IF weather = 2 THEN
 	PAINT (250, 350), 3, 10
 END IF
 '.................................mountains.................................
-IF LEN(DIR$("m.vga")) > 0 THEN
+IF LEN(DIR$(GFXDIR + "m.vga")) > 0 THEN
 DEF SEG = VARSEG(graphic(1))
-BLOAD "m.vga", VARPTR(graphic(1))
+BLOAD GFXDIR + "m.vga", VARPTR(graphic(1))
 DEF SEG
 FOR k = 1 TO 19
 	PUT (featx(k), featy(k)), graphic, PSET
@@ -1156,9 +1156,9 @@ sel1:
 				LINE (548, 148)-(592, 216), 15, B
 				a = row: IF side = 1 THEN a = 6 - row
 				t$ = "face" + LTRIM$(STR$(a)) + ".vga"
-				IF LEN(DIR$(t$)) > 0 THEN
+				IF LEN(DIR$(GFXDIR + t$)) > 0 THEN
 					DEF SEG = VARSEG(graphic(1))
-					BLOAD t$, VARPTR(graphic(1))
+					BLOAD GFXDIR + t$, VARPTR(graphic(1))
 					DEF SEG
 					PUT (550, 150), graphic, PSET
 					IF side = 1 THEN
@@ -1426,7 +1426,7 @@ redux:
 				a$ = UCASE$(mtx$(0)): file$ = ""
 				SELECT CASE a$
 					CASE "MAIN"
-					file$ = "help.sc1"
+					file$ = GFXDIR + "help.sc1"
 				END SELECT
 				IF file$ = "" THEN RETURN
 				IF LEN(DIR$(file$)) = 0 THEN RETURN
@@ -2155,7 +2155,7 @@ SUB submarine (flag)
 IF flag = 0 THEN
 	LINE (139, 331)-(232, 384), 4, BF
 	PSET (150, 370), 4
-	OPEN "I", 1, "sub1.grf"
+	OPEN "I", 1, GFXDIR + "sub1.grf"
 	INPUT #1, a$: DRAW a$
 	CLOSE #1
 	x = POINT(0): y = POINT(1): PAINT (x, y), 0, 8
@@ -2163,7 +2163,7 @@ ELSE
 	LINE (139, 331)-(232, 369), 3, BF
 	LINE (139, 370)-(232, 384), 1, BF
 	PSET (150, 375), 5
-	OPEN "I", 1, "sub2.grf"
+	OPEN "I", 1, GFXDIR + "sub2.grf"
 	FOR k = 1 TO 2: INPUT #1, a$: DRAW a$: NEXT k
 	CLOSE #1
 	x = POINT(0): y = POINT(1): PAINT (x, y), 4, 8

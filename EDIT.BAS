@@ -8,7 +8,7 @@ hilite = 14: side = 1
 SCREEN 12
 s = 1
 DEF SEG = VARSEG(graphic(1))
-BLOAD "w2icon.vga", VARPTR(graphic(1))
+BLOAD GFXDIR + "w2icon.vga", VARPTR(graphic(1))
 DEF SEG
 PUT (100, 100), graphic, PSET
 GET (101, 101)-(115, 114), usai
@@ -20,7 +20,7 @@ GET (123, 115)-(137, 128), rusi
 GET (117, 129)-(139, 142), alship
 GET (117, 143)-(139, 156), axship
 DEF SEG = VARSEG(graphic(1))
-BLOAD "w2xtra.vga", VARPTR(graphic(1))
+BLOAD GFXDIR + "w2xtra.vga", VARPTR(graphic(1))
 DEF SEG
 PUT (100, 100), graphic, PSET
 GET (101, 101)-(115, 112), para
@@ -273,22 +273,23 @@ filex:
 			a$ = "ww" + begin$ + ".ini"
 			PRINT : COLOR 11
 			PRINT "Saving "; a$; " scenario file beginning:  "; month$(month); ","; year
-			IF LEN(DIR$(a$)) > 0 THEN
+			IF LEN(DIR$(SCNDIR + a$)) > 0 THEN
 				COLOR 14
 				PRINT "First : Make backup files "
 				t$ = "ww" + begin$ + ".bak"
-				SHELL "copy " + a$ + " " + t$
+				' cmd's copy takes a backslash, not the slash of SCNDIR
+				SHELL "copy scenarios" + CHR$(92) + a$ + " scenarios" + CHR$(92) + t$
 					PRINT "Backup file "; t$; " created - OK"
 				a$ = "euro" + begin$ + ".dat"
 				t$ = "euro" + begin$ + ".bak"
-				SHELL "copy " + a$ + " " + t$
+				SHELL "copy scenarios" + CHR$(92) + a$ + " scenarios" + CHR$(92) + t$
 					PRINT "Backup file "; t$; " created - OK"
 				TICK 5
 			END IF
 			COLOR 11
 			PRINT "Saving edited map..";
 			t$ = "euro" + begin$ + ".dat"
-			OPEN "O", 1, t$
+			OPEN "O", 1, SCNDIR + t$
 			FOR k = 1 TO ncity
 			WRITE #1, k, city$(k), race(k), cityx(k), cityy(k), cityv(k), cityp(k), matrix(k, 1), matrix(k, 2), matrix(k, 3), matrix(k, 4), matrix(k, 5), matrix(k, 6), matrix(k, 7), fort(k)
 			PRINT ".";
@@ -297,7 +298,7 @@ filex:
 
 			PRINT "Now saving edited scenario..";
 			t$ = "ww" + begin$ + ".ini"
-			OPEN "O", 1, t$
+			OPEN "O", 1, SCNDIR + t$
 			PRINT #1, scenario$
 			PRINT "..";
 			WRITE #1, month, year
@@ -710,9 +711,9 @@ CALL boxes
 END SUB
 
 SUB features
-IF LEN(DIR$("m.vga")) > 0 THEN
+IF LEN(DIR$(GFXDIR + "m.vga")) > 0 THEN
 DEF SEG = VARSEG(graphic(1))
-BLOAD "m.vga", VARPTR(graphic(1))
+BLOAD GFXDIR + "m.vga", VARPTR(graphic(1))
 DEF SEG
 FOR k = 1 TO 19
 PUT (featx(k), featy(k)), graphic, PSET
@@ -735,7 +736,7 @@ SELECT CASE switch
 	CASE 1, 4
 redo:
 	mtx$(0) = "Starting Year"
-	t$ = DIR$("euro*.dat")
+	t$ = DIR$(SCNDIR + "euro*.dat")
 	colour = 3
 	' QB64: getyr always ends by RETURN, so that no GOSUB stays pending (devnotes.md)
 	GOSUB getyr
@@ -747,8 +748,8 @@ redo:
 	GOSUB wbase
 	PRINT "..";
 	t$ = "ww" + begin$ + ".ini"
-	IF LEN(DIR$(t$)) < 1 THEN CALL clrbot: COLOR 14: LOCATE 29, 1: PRINT "INITILIZATION FILE NOT FOUND :"; t$; : begin$ = "": TICK 5: CALL clrbot: EXIT SUB
-	OPEN "I", 1, t$
+	IF LEN(DIR$(SCNDIR + t$)) < 1 THEN CALL clrbot: COLOR 14: LOCATE 29, 1: PRINT "INITILIZATION FILE NOT FOUND :"; t$; : begin$ = "": TICK 5: CALL clrbot: EXIT SUB
+	OPEN "I", 1, SCNDIR + t$
 	INPUT #1, scenario$
 	INPUT #1, month, year
 '               set end game conditions
@@ -786,7 +787,7 @@ END SELECT
 EXIT SUB
 ':::::::::::::::::::::::::::::::::: BASE Conditions :::::::::::::::::::::::::
 wbase:
-	OPEN "I", 1, "ww2base.ini"
+	OPEN "I", 1, SCNDIR + "ww2base.ini"
 	FOR i = 0 TO 2: INPUT #1, force$(i): NEXT i
 	FOR i = 1 TO 12: INPUT #1, month$(i): NEXT i
 	FOR k = 1 TO 8: INPUT #1, tname$(k): NEXT k
@@ -807,8 +808,8 @@ wbase:
 ' 1=US 2=German 3=UK 4=French 5=Polish 6=Russian 7=Italian 8=Generic Allied
 ' 7th position : shows location of matching text. If > 95 then IS invasion port
 	t$ = "euro" + begin$ + ".dat"
-	IF LEN(DIR$(t$)) = 0 THEN t$ = "euro1939.dat"
-	OPEN "I", 1, t$
+	IF LEN(DIR$(SCNDIR + t$)) = 0 THEN t$ = "euro1939.dat"
+	OPEN "I", 1, SCNDIR + t$
 	vptotal = 0
 	FOR k = 1 TO 2: income(k) = 0: control(k) = 0: NEXT k
 	FOR k = 1 TO ncity
@@ -1141,7 +1142,7 @@ redoit:
 				a$ = UCASE$(mtx$(0)): file$ = ""
 				SELECT CASE a$
 					CASE "MAIN"
-					file$ = "help.sc2"
+					file$ = GFXDIR + "help.sc2"
 				END SELECT
 				IF file$ = "" THEN RETURN
 				IF LEN(DIR$(file$)) = 0 THEN RETURN

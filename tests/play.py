@@ -46,6 +46,8 @@ SOURCE_SUFFIXES = {".bas", ".bi", ".bm"}
 NOT_DATA_SUFFIXES = SOURCE_SUFFIXES | {
     ".exe", ".obj", ".lnk", ".mak", ".zip", ".md", ".qlb", ".com", ".drv", ".bat", ".btm",
 }
+# The folders of data files (FOLDERS.BI), copied whole into a run's folder.
+DATA_FOLDERS = ("graphics", "sound", "scenarios")
 
 # The fields of ww2.cfg in the order filer(0) reads them (WW2B.BM), with the values a run starts
 # with: one player on the Allied side, no sound, keyboard only, no autosave.
@@ -361,6 +363,8 @@ def copy_data(work: Path) -> None:
     for path in GAME.iterdir():
         if path.is_file() and path.suffix.lower() not in NOT_DATA_SUFFIXES:
             shutil.copy2(path, work / path.name)
+    for folder in DATA_FOLDERS:
+        shutil.copytree(GAME / folder, work / folder)
 
 
 def write_cfg(work: Path, cfg: dict[str, str]) -> None:
@@ -432,12 +436,17 @@ def with_files(run: Run, work: Path) -> Run:
 def file_entries(work: Path, names: list[str]) -> bytes:
     """A line "file <name> <hash>" for each file the script names, after its run. The hash is of
     the file with CRLF line ends taken as LF, so that the same text gives the same hash on every
-    system. A name matches a file whatever its case, as on Windows."""
-    present = {p.name.lower(): p for p in work.iterdir() if p.is_file()}
+    system. A name may start with a folder, as in scenarios/WW1939.INI. Each part matches whatever
+    its case, as on Windows."""
     out = b""
     for name in names:
-        path = present.get(name.lower())
-        if path is None:
+        path: Path | None = work
+        for part in name.split("/"):
+            if path is None or not path.is_dir():
+                path = None
+                break
+            path = next((p for p in path.iterdir() if p.name.lower() == part.lower()), None)
+        if path is None or not path.is_file():
             out += f"file {name} missing\n".encode()
         else:
             digest = hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()[:16].upper()

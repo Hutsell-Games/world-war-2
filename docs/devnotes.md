@@ -15,7 +15,8 @@ python tests\play.py check
 The last line plays the whole-game scripts and compares their screens with the recorded ones
 ([tests/README.md](../tests/README.md)).
 
-Put the executables in this folder before running them: a QB64 program looks for its data files beside itself.
+Put the executables in this folder before running them. The game looks for its data files in
+`graphics\`, `sound\` and `scenarios\` under the folder it runs in (`FOLDERS.BI`).
 Keep the names `ww2.exe` and `edit.exe`: the game's Editor entry runs `edit.exe`, and the editor's PLAY GAME
 runs `ww2.exe`. The builds are not committed (`*.exe` in `.gitignore`). The original DOS programs `WW2.EXE`
 and `EDIT.EXE` are removed from this branch, because the builds take their names; they are on `main`.
@@ -32,7 +33,12 @@ and `EDIT.EXE` are removed from this branch, because the builds take their names
 | `QB64.BM` | What the game needs from PDS 7.1 that QB64 does not have: `DIR$`, `CURDIR$` and the playing of the sound files |
 | `SCRIPT.BM` | The hooks for the whole-game scripts: the seed, and the announcement of each wait for a key |
 | `EDIT.BAS` | The scenario editor, a program of its own (1,661 lines). It includes `EDIT.BI`, `QB64.BM` and `SCRIPT.BM` |
-| `EDIT.BI` | The editor's declarations, as they came |
+| `EDIT.BI` | The editor's declarations, as they came, and the include of `FOLDERS.BI` |
+| `FOLDERS.BI` | The names of the three data folders, as `CONST`s. Included by `WW2.BI` and `EDIT.BI` |
+| `graphics\` | Pictures (`.VGA`), the F1 help screens (`HELP.SC1` for the game, `HELP.SC2` for the editor), the map drawings (`EUROPE.GRF`, `SUB1.GRF`, `SUB2.GRF`) and `EUROPE.MAP`, which the code does not read |
+| `sound\` | Sound effects (`.VOC`) and tunes (`.MID`) |
+| `docs\` | These notes and their screenshots (`WW2TITLE.png`, `WW2CITY.png`), and the game's original documents: the manual `WW2.DOC`, its text marked up with `@` headings (`WW2.TXT`) and `RELEASE_NOTES.TXT` |
+| `scenarios\` | The scenarios (`EURO1939.DAT` to `EURO1945.DAT`, `WW1939.INI` to `WW1945.INI`), `WW2BASE.INI` and `SPECIAL.EVT`. The editor writes its saves and `.bak` backups here |
 | `tests\rules_test.bas` | Unit tests, run by `qb64rust test` |
 | `tests\play.py` | Plays the scripts and compares their screens (`check`, `compare`, `record`, `coverage`, `explore`) |
 | `tests\make_scripts.py` | Writes the generated scripts, after probing each game |
