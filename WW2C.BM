@@ -1064,21 +1064,15 @@ END SUB
 SUB menu (switch%)
 	IF Mighty = 0 AND switch = 3 THEN utility1 = 0
 	TICK .1
-	IF Mighty > 0 THEN
-		CALL MouseBorder(1, 1, 450, 635)
-	END IF
+	' QB64: the DOS game called MouseBorder here, to pull the mouse cursor
+	' into the menu's part of the screen. Mickey then set its own limits, so
+	' only that jump of the cursor mattered. The port does not do it (TODO.md).
 		SELECT CASE switch
 			CASE 10, 12, 19
-				CALL MouseBorder(1, 525, 450, 635)
 				switch = switch - 10
-			CASE 3, 11
-				CALL MouseBorder(1, 1, 450, 525)
 			CASE 13
-				CALL MouseBorder(1, 640, 450, 645)
 				COLOR 14: LOCATE 13, 67: PRINT "Use Arrow Keys"
 				switch = 3
-			CASE 5, 99
-				CALL MouseBorder(1, 525, 450, 635)
 		END SELECT
 	win = noise
 remenu:

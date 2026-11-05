@@ -1,0 +1,75 @@
+# The mouse, written by hand. With mighty=1 the "press a key" pauses and most menus wait in
+# Mickey (place 3), which a mouse button also ends; every wait this script clicks at is one. Each click is a press and a release given at once,
+# so it also checks that Mickey does not lose a click whose release comes before it reads the
+# buttons. The earlier Mickey (MICKEY.BM, which read only the buttons' last state) failed this
+# script in 3 of 6 runs (2026-11-05).
+#   - "press a key or mouse button": a left click;
+#   - the title menu: Start NEW Game, clicked (menu, switch 11);
+#   - Start Year: 1939, clicked;
+#   - the briefing: a right click;
+#   - the main menu: Paris clicked on the map, then Reims, which moves Elite Unit 5 there;
+#   - END TURN clicked in the main menu, then a right click (Esc) at its Yes / NOT YET.
+# It then quits with keys, which Mickey also takes: Files, Quit, Yes.
+#! seed 1939
+#! cfg mighty=1
+
+# The pause before the title menu.
+prompt
+digest
+mouse 100 100
+press 1
+release 1
+
+# The title menu: Start NEW Game.
+prompt
+digest
+mouse 60 263
+press 1
+release 1
+
+# Start Year: 1939.
+prompt
+digest
+mouse 165 199
+press 1
+release 1
+
+# The briefing.
+prompt
+digest
+press 2
+release 2
+
+# The main menu: Paris (city 40, at 111, 127), then Reims (city 42, at 144, 126).
+prompt
+digest
+mouse 112 128
+press 1
+release 1
+prompt
+digest
+mouse 143 125
+press 1
+release 1
+
+# END TURN, then a right click at Yes / NOT YET.
+prompt
+digest
+mouse 565 295
+press 1
+release 1
+prompt
+digest
+press 2
+release 2
+
+# Files, Quit, then Yes by its letter, and a key for END's "Press any key to continue".
+prompt
+digest
+text f
+prompt
+text q
+prompt
+digest
+text y
+repeat space

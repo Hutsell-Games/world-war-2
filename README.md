@@ -7,7 +7,7 @@ original source is kept unchanged on the branch `main`.
 
 This branch, `qb64rust`, changes that source as little as possible so that the game builds with QB64Rust
 and QB64pe, and so that its SUBs can be tested. It builds one program, `WW2.BAS`, which includes the other
-source files (`WW2.BI`, `WW2A.BM`, `WW2B.BM`, `WW2C.BM`, `MICKEY.BM`, `QB64.BM`, `SCRIPT.BM`):
+source files (`WW2.BI`, `WW2A.BM`, `WW2B.BM`, `WW2C.BM`, `QB64.BM`, `SCRIPT.BM`):
 
 ```
 qb64rust -x WW2.BAS -o ww2.exe

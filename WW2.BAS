@@ -987,6 +987,5 @@ yesno:
 '$INCLUDE: 'ww2a.bm'
 '$INCLUDE: 'ww2b.bm'
 '$INCLUDE: 'ww2c.bm'
-'$INCLUDE: 'mickey.bm'
 '$INCLUDE: 'qb64.bm'
 '$INCLUDE: 'script.bm'

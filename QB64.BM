@@ -1,8 +1,45 @@
 ' ===========================================================================
 ' QB64.BM - what the game needs from BASIC PDS 7.1 that QB64 does not have:
-' DIR$, CURDIR$ and the playing of sound files.
+' DIR$, CURDIR$, the playing of sound files, and the mouse (Mickey).
 ' Included at the end of WW2.BAS and EDIT.BAS.
 ' ===========================================================================
+
+' Waits for a key or a mouse button, with the mouse cursor shown. a$ is the
+' key (or ""), lButton and rButton are -1 for a button pressed, and xc, yc
+' are where the mouse was, in pixels counted from 1.
+' The DOS game called the mouse driver (interrupt 51) through Microsoft's
+' MOUSE.BAS. Before each wait it limited the cursor to x 1 to 632 and y 1 to
+' 444. QB64 cannot confine the cursor, so the position read is held there.
+' Each mouse event is looked at, so that a click whose press and release
+' come between two passes of the loop is not lost. The position is the one
+' of the event that first shows a button down, not of a later move.
+SUB Mickey (a$, lButton, rButton, xc, yc)
+lButton = 0: rButton = 0
+_MOUSESHOW
+TICK .1
+DO WHILE _MOUSEINPUT: LOOP
+IF _MOUSEBUTTON(1) THEN lButton = -1
+IF _MOUSEBUTTON(2) THEN rButton = -1
+mx = _MOUSEX: my = _MOUSEY
+CALL announce(3, "")
+DO
+	_LIMIT 100
+	DO WHILE _MOUSEINPUT
+		IF lButton = 0 AND rButton = 0 THEN
+			IF _MOUSEBUTTON(1) THEN lButton = -1
+			IF _MOUSEBUTTON(2) THEN rButton = -1
+			mx = _MOUSEX: my = _MOUSEY
+		END IF
+	LOOP
+	a$ = INKEY$
+LOOP WHILE lButton = 0 AND rButton = 0 AND a$ = ""
+xc = mx + 1: yc = my + 1
+IF xc < 1 THEN xc = 1
+IF xc > 632 THEN xc = 632
+IF yc < 1 THEN yc = 1
+IF yc > 444 THEN yc = 444
+_MOUSEHIDE
+END SUB
 
 ' PDS 7.1's DIR$: the first file that matches spec$, or the next match of
 ' the last search when spec$ is "" (PDS: DIR$ with no argument). Folders are

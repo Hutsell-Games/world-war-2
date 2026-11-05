@@ -48,6 +48,10 @@ NOT_DATA_SUFFIXES = SOURCE_SUFFIXES | {
 }
 # The folders of data files (FOLDERS.BI), copied whole into a run's folder.
 DATA_FOLDERS = ("graphics", "sound", "scenarios")
+# The saved games and high scores every run starts with: the five saved games and the 1943 and
+# 1944 high scores that came with the game, which the scripts were recorded with. The repo no
+# longer ships them (.gitignore), so they live here.
+TEST_DATA = GAME / "tests" / "data"
 
 # The fields of ww2.cfg in the order filer(0) reads them (WW2B.BM), with the values a run starts
 # with: one player on the Allied side, no sound, keyboard only, no autosave.
@@ -359,12 +363,26 @@ class Run:
         return f"{self.script.name} [{self.compiler}{' ' + self.tag if self.tag else ''}]"
 
 
-def copy_data(work: Path) -> None:
-    for path in GAME.iterdir():
-        if path.is_file() and path.suffix.lower() not in NOT_DATA_SUFFIXES:
+def played_file(path: Path) -> bool:
+    """A saved game (*.SAV) or a high-score table (HI*.WW2), which playing writes."""
+    name = path.name.lower()
+    return name.endswith(".sav") or (name.startswith("hi") and name.endswith(".ww2"))
+
+
+def copy_data(work: Path, game: Path = GAME, test_data: Path = TEST_DATA) -> None:
+    """Fills a run's folder: the game's data files, and the saved games and high scores of
+    tests/data. Those that playing left in the repo's folder are not taken, so a run does not
+    depend on what was played on this machine."""
+    for path in game.iterdir():
+        if not path.is_file() or played_file(path):
+            continue
+        if path.suffix.lower() not in NOT_DATA_SUFFIXES:
             shutil.copy2(path, work / path.name)
     for folder in DATA_FOLDERS:
-        shutil.copytree(GAME / folder, work / folder)
+        shutil.copytree(game / folder, work / folder)
+    for path in test_data.iterdir():
+        if path.is_file():
+            shutil.copy2(path, work / path.name)
 
 
 def write_cfg(work: Path, cfg: dict[str, str]) -> None:

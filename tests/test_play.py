@@ -141,6 +141,34 @@ class ScriptTest(unittest.TestCase):
             self.assertEqual((Path(d) / "WW2.CFG").read_text(), '1,0,3,1,2,0,0,0,0,1,0,1,"",0\n')
 
 
+class CopyDataTest(unittest.TestCase):
+    def test_saves_and_high_scores_come_from_the_test_data(self):
+        with tempfile.TemporaryDirectory() as d:
+            game, data, work = Path(d) / "game", Path(d) / "data", Path(d) / "work"
+            for folder in (game, data, work, *(game / f for f in play.DATA_FOLDERS)):
+                folder.mkdir()
+            (game / "scenarios" / "EURO1939.DAT").write_text("map")
+            (game / "WW2.CFG").write_text("cfg")
+            (game / "WW2.BAS").write_text("source")
+            # Left in the repo's folder by playing on this machine.
+            (game / "WWII1.SAV").write_text("played")
+            (game / "wwii9.sav").write_text("played")
+            (game / "HI1939.WW2").write_text("played")
+            (data / "WWII1.SAV").write_text("shipped")
+            (data / "HI1943.WW2").write_text("shipped")
+            play.copy_data(work, game, data)
+            names = sorted(p.name for p in work.iterdir())
+            self.assertEqual(names, ["HI1943.WW2", "WW2.CFG", "WWII1.SAV", "graphics",
+                                     "scenarios", "sound"])
+            self.assertEqual((work / "WWII1.SAV").read_text(), "shipped")
+            self.assertEqual((work / "scenarios" / "EURO1939.DAT").read_text(), "map")
+
+    def test_the_repo_has_the_test_data(self):
+        names = {p.name.upper() for p in play.TEST_DATA.iterdir()}
+        self.assertEqual(names, {"WWII1.SAV", "WWII2.SAV", "WWII3.SAV", "WWII4.SAV", "WWII5.SAV",
+                                 "HI1943.WW2", "HI1944.WW2"})
+
+
 class CoverageTest(unittest.TestCase):
     UNIT = (
         "coverage 2\n"

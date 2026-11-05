@@ -18,10 +18,6 @@ Open work on the QB64 port (branch `qb64rust`). Remove an item when it is done.
 
   Then run `play.py check` on Linux under Xvfb, as QB64Rust's own Linux steps do, and compare the screens
   with the recordings made on Windows.
-- **A script that uses the mouse.** Every script plays with `mighty=0`. As a result `MouseDriver` (the
-  rewritten part of `MICKEY.BM`), `Mickey` and the mouse half of `menu` never run. Write one script with
-  `#! cfg mighty=1` that clicks through the title menu, a main menu and a "press a key or mouse button"
-  pause. The keys file already has `mouse`, `press` and `release` steps.
 - **Paratroop.** After its first wait, no further wait is announced. Find the wait that is missing an
   `announce`, then add a script.
 - **Play by mail.** Begin PBM and the PBM news have no script.
@@ -43,16 +39,21 @@ Open work on the QB64 port (branch `qb64rust`). Remove an item when it is done.
   changes `edit-1939`, which would need `record` again.
 - **The editor's other commands.** `edit-1939` covers Technology, Cash, Fortify, Navy Edit, Side, Save,
   Load and Quit. Army (recruit, remove, rotate), Navy Move, Air Force, Cities and Capital have no script.
-- **The mouse exits of `menu` have no script.** `selex` (`WW2C.BM`) leaves by the mouse in seven places:
-  lines 1194, 1215, 1224, 1268, 1272, 1368 and 1378. They were rewritten to end by `RETURN`
-  (`docs/devnotes.md`, item 12), but the scripts play with `mighty=0`, so none runs them. First find out
-  whether a keys file can give a mouse click (QB64Rust's `tools\screen\README.md`). If it cannot, try a script
-  with `cfg mighty=1` and keys only, which runs the `Mickey` branch of `selex` but not the seven exits.
+- **Six mouse exits of `menu` have no script.** `selex` (`WW2C.BM`) leaves by the mouse in seven places,
+  which were rewritten to end by `RETURN` (`docs/devnotes.md`, item 12). `mouse-1939-allied` runs one: line
+  1372, a click on a menu entry. These six do not run: 1188 (a key while an army is shown), 1209 (a click on
+  the air force), 1218 (a click on the player's navy), 1262 and 1266 (a city clicked for a paratroop drop or a
+  bombing), and 1362, which changes the side. Line 1362 runs for a click outside the menu's rows with `xc`
+  591 to 609 (`Mickey` counts from 1), and only when `row1`, the row highlighted before the click, is -3. What sets `row1`
+  to -3 is not yet known; find it first. Add their clicks to `mouse-1939-allied` or to a second mouse script.
 - **A rare crash in `play.py check`.** Once, in a `check` of all the scripts with `--jobs 6`,
   `endturn-1943-allied` ended with exit code 3221225477 (0xC0000005, an access violation) in the QB64Rust
   build. Run alone three times, it passed each time. Find out whether it comes from the QB64Rust runtime.
 - **The title and burning-city screens.** `ww2title.exe` and `ww2city.exe` were DOS programs with no
   source, so their `SHELL` lines are comments and the screens are missing. Pictures of both, taken in
   DOSBox, are `docs/WW2TITLE.png` and `docs/WW2CITY.png`. They could be drawn again in BASIC.
-- **The mouse cursor's limits.** `MouseBorder` no longer confines the real cursor. Only the position the
-  game reads is held inside the limits.
+- **The jump of the mouse cursor into a menu.** In DOS, `menu` called `MouseBorder` with the limits of
+  its own part of the screen (the main menu's x 524 to 634, for example), and the driver pulled the cursor
+  inside them. `Mickey` then set wider limits, so only that jump mattered. The port dropped the calls
+  (`docs/devnotes.md`, item 5). `_MOUSEMOVE` could move the cursor the same way, when `Mighty > 0`. Decide
+  whether it is worth it: a jump of the real cursor can surprise a player in a window.

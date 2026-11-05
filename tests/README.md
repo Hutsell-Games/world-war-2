@@ -34,7 +34,7 @@ reach it. Everything a run makes goes into `tests\out\`, which git ignores. A bu
 source file, the compiler or the screen hook changed. What a command prints also goes to
 `tests\out\last-<command>.txt`.
 
-A whole `check` of the 39 scripts takes about 35 seconds with `--jobs 6`. `record` of all of them takes a few
+A whole `check` of the 40 scripts takes about 35 seconds with `--jobs 6`. `record` of all of them takes a few
 minutes, because each script runs five times.
 
 ### When a check fails
@@ -76,7 +76,7 @@ The places a script can name (`play until <place>[:<letter>]`, `rule <place>[:<l
 |---|---|---|
 | 1 | A pause that any key ends ("press a key", `TICK` of 0 or less) | `TICK`, `WW2B.BM` |
 | 2 | A menu. The letter is the first letter of the menu's title | `menu`, `WW2C.BM` |
-| 3 | A key or a mouse button | `Mickey`, `MICKEY.BM` |
+| 3 | A key or a mouse button, with no letter. With `mighty=1` the "press a key" pauses and most menus wait here (below) | `Mickey`, `QB64.BM` |
 | 4 | A line of text: the commander's name for the Hall of Fame (an `INPUT`); in the editor, the scenario's description | `maxx`, `WW2B.BM`; `Enput`, `EDIT.BAS` |
 | 5 | The news of a play-by-mail game | `WW2.BAS` |
 | 6 | The boss screen (Ctrl+B), which only Ctrl+B ends | `menu`, `WW2C.BM` and `EDIT.BAS` |
@@ -137,8 +137,13 @@ command, so on another system they would be recorded as `missing`.
 
 The `ww2.cfg` of a run is written fresh. By default it is one player on the Allied side, difficulty 3, no
 sound, keyboard only (`mighty=0`) and no autosave. The fields are `CFG_FIELDS` in `play.py`. Each run starts
-in a fresh copy of the game's data files in `tests\out\run\`, so the high scores and saved games of the repo
-are never changed.
+in a fresh copy of the game's data files in `tests\out\run\`, so the files in the repo are never changed.
+
+The saved games and high scores of a run come from `tests\data\`, not from the repo's folder. They are the
+ones that came with the game: `WWII1.SAV` to `WWII5.SAV`, `HI1943.WW2` and `HI1944.WW2`. The scripts were
+recorded with them. The Files menu offers Load only when a saved game exists, and the 1943 and 1944 games
+end at a Hall of Fame that lists them. The repo's folder no longer holds them (`.gitignore`), and the saves
+and high scores that playing leaves there are never copied into a run.
 
 A script ends the game the way a player does: Quit at the title menu, then `repeat space` for END's "Press any
 key to continue". A run that ends any other way (a `prompt` that times out, no rule for a wait, a crash)
@@ -171,6 +176,7 @@ the probes only get unstuck at the main menu. `make_scripts.py` reports it and g
 | `utility-1939-allied` | The settings of UTILITY: players, sound, display speed, weather, autosave, end conditions, high scores, Vary Start, balance, side |
 | `orders-1939-axis` | The orders of a turn with choices other than the first: moves and Cancel; COMMANDS Fortify, Join, Detach, Supply, Rotate, Army Drill and Static; the navy sailed; the air force against a navy and to a new base; Tech with and without the money |
 | `menus-gosub-1939-allied` | Menus answered by a letter or Esc inside a `GOSUB` routine, which once stopped the game with "RETURN without GOSUB" (`docs/devnotes.md`, item 12): Start Year, Editor then No, Files Quit then Esc, Saved Games. It also plays the other exits that item 12 rewrote: Esc at Start Year, Esc at Saved Games after Load and after Save, and F7. It then quits with Files, Quit, Yes |
+| `mouse-1939-allied` | The mouse (`mighty=1`): clicks at a "press a key" pause, the title menu, Start Year and the main menu; an army moved from Paris to Reims by two clicks on the map; right clicks as Esc. It then quits with Files, Quit, Yes, given as keys |
 | `edit-1939` | The editor: Esc at Starting Year; loads 1939; changes Technology, Cash, a fort, the navy and the side; saves as 1939, loads again, quits. It checks the saved scenario and map and the two `.bak` files |
 
 The first three then end every turn to the end of the game.
@@ -204,6 +210,12 @@ Points that matter:
 - `play until` answers the waits it passes by rules. A wait with no rule stops the run with "no rule for the
   wait at place N"; `explore` shows the screen there.
 - Prefer `digest` to `state`. A full state of the map is about 130 KB; a digest is one line.
+- **A click is `mouse <x> <y>`, `press 1`, `release 1`** after a `prompt` (`press 2` for the right button).
+  The position is the screen's pixel, x 0 to 639 and y 0 to 479. With `mighty=1` most menus wait at place 3
+  with no letter, so `play until 2:<letter>` does not find them: step with `prompt` instead. The menus that
+  `selex` (`WW2C.BM`) leaves to the keys still wait at place 2 with their letter: `menu(4)`, the "Which" menu
+  of `WW2A.BM`, and `menu(8)` in `WW2.BAS`. A city's pixel is in its scenario's `.DAT` file: the fourth and
+  fifth fields of its line (Paris is `40,"Paris",4,111,127,…`).
 
 ## What the scripts do not cover
 
@@ -218,8 +230,8 @@ statements, `battle` 91%, `tupdate` 85%, `airforce` 82% and `navy` 79%.
 
 Not covered:
 
-- **The mouse.** Scripts play with the keyboard (`mighty=0`), so the mouse half of `menu` never runs. The keys
-  file has mouse steps, but no script uses them yet.
+- **Most of the mouse.** Only `mouse-1939-allied` plays with the mouse. It does not click the air force, a
+  navy, a paratroop or bombing target, or the side switch beside a menu (`TODO.md`).
 - **Paratroop.** After its first wait no further wait is announced; not looked into yet.
 - **Play by mail** (Begin PBM, the PBM news) and PBM Drv, whose menu shows the drive the game runs from.
 - **Sound and the DOS programs.** They are not ported (`TODO.md`).

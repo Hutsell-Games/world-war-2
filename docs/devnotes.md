@@ -29,8 +29,7 @@ and `EDIT.EXE` are removed from this branch, because the builds take their names
 | `WW2.BI` | Every shared declaration: the original ones, then those that were in `WW2.BAS` and `WW2B.BAS` |
 | `WW2A.BM` | The SUBs that were in `WW2.BAS` |
 | `WW2B.BM`, `WW2C.BM` | The PDS modules `WW2B.BAS` and `WW2C.BAS` without their headers |
-| `MICKEY.BM` | The mouse routines (`MICKEY.BAS`) |
-| `QB64.BM` | What the game needs from PDS 7.1 that QB64 does not have: `DIR$`, `CURDIR$` and the playing of the sound files |
+| `QB64.BM` | What the game needs from PDS 7.1 that QB64 does not have: `DIR$`, `CURDIR$`, the playing of the sound files, and `Mickey`, the wait for a key or a mouse button |
 | `SCRIPT.BM` | The hooks for the whole-game scripts: the seed, and the announcement of each wait for a key |
 | `EDIT.BAS` | The scenario editor, a program of its own (1,661 lines). It includes `EDIT.BI`, `QB64.BM` and `SCRIPT.BM` |
 | `EDIT.BI` | The editor's declarations, as they came, and the include of `FOLDERS.BI` |
@@ -43,19 +42,21 @@ and `EDIT.EXE` are removed from this branch, because the builds take their names
 | `tests\play.py` | Plays the scripts and compares their screens (`check`, `compare`, `record`, `coverage`, `explore`) |
 | `tests\make_scripts.py` | Writes the generated scripts, after probing each game |
 | `tests\scripts\` | The scripts (`<name>.keys`) and their recorded screens (`<name>.screen`) |
+| `tests\data\` | The saved games (`WWII1.SAV` to `WWII5.SAV`) and high scores (`HI1943.WW2`, `HI1944.WW2`) that came with the game. Every script's run starts with them |
 | `tests\test_play.py` | Tests of `play.py` itself |
 | `tests\README.md` | How the tests work and how to write a script |
 | `.github\workflows\build.yml` | Builds `ww2.exe` and `edit.exe` with QB64Rust on each merge into `main` or when started by hand, and uploads them with the data files as the artifact `world-war-2` |
 
 ## What was changed from `main`, and why
 
-1. **One program instead of four linked modules.** QB64 builds one program. `WW2B.BAS`, `WW2C.BAS` and
-   `MICKEY.BAS` were renamed to `.BM` and are included at the end of `WW2.BAS`. Their headers (`DEFINT`, `DECLARE`,
-   the include of `ww2.bi`) were removed, because the main module already has them.
+1. **One program instead of four linked modules.** QB64 builds one program. `WW2B.BAS` and `WW2C.BAS` were
+   renamed to `.BM` and are included at the end of `WW2.BAS`. Their headers (`DEFINT`, `DECLARE`, the include
+   of `ww2.bi`) were removed, because the main module already has them. The fourth module, `MICKEY.BAS`, is
+   gone (item 5).
 2. **The SUBs of `WW2.BAS` moved to `WW2A.BM`, unchanged.** A test file includes the `.BM` files and so gets every
    SUB without the main module's code.
 3. **The `DIM SHARED` lines of `WW2.BAS` and `WW2B.BAS` moved to the end of `WW2.BI`**, with the includes of
-   `general.bi` and `mouse.bi`. A test file needs them too.
+   `general.bi`. A test file needs them too.
 4. **`DIR$` is a FUNCTION in `QB64.BM`**, written with QB64's `_FILES$`. The 16 calls are unchanged, except
    `t$ = DIR$` in `filer` (`WW2B.BM`), which is now `t$ = DIR$("")`: a FUNCTION of QB64 cannot leave its argument
    out.
@@ -66,11 +67,20 @@ and `EDIT.EXE` are removed from this branch, because the builds take their names
    port missed it. QB64 has no `CURDIR$`, and both compilers build a bare `CURDIR$` as a string variable,
    with no message. It was always `""`, so the PBM Drive menu showed a blank first entry
    (`TestCurdirIsTheCurrentFolder` in `tests\rules_test.bas`).
-5. **`MouseDriver` in `MICKEY.BM` uses QB64's mouse statements.** The original called the DOS mouse driver with
-   `Interrupt 51`. The new body does the six driver functions the game uses (0, 1, 2, 3, 7, 8). The limits set by
-   `MouseBorder` no longer hold the real cursor; the position the game reads is kept inside them instead.
-6. **`COMMON SHARED /uitools/ MousePresent` in `MOUSE.BI` is `DIM SHARED MousePresent`.** QB64 has no named
-   `COMMON` blocks.
+5. **The mouse is `Mickey` in `QB64.BM`, written with QB64's mouse statements.** The original `MICKEY.BAS`
+   held `Mickey` and Microsoft's `MOUSE.BAS` routines, which called the DOS mouse driver with `Interrupt 51`.
+   `MOUSE.BI` declared them. The game calls only `Mickey` and `MouseBorder`, so the driver routines, `MOUSE.BI`
+   and its unused `MousePresent` are gone. `Mickey` looks at every mouse event, so a click whose press and
+   release both come between two passes of its loop is not lost. The version that read only the buttons' last
+   state lost such clicks: `mouse-1939-allied` failed in 3 of 6 runs with it (2026-11-05). The loop also
+   runs at most 100 times a second (`_LIMIT`), where the DOS version kept a core busy.
+
+   The DOS `Mickey` limited the cursor to x 1 to 632 and y 1 to 444 before each wait. QB64 cannot confine
+   the cursor, so the position `Mickey` returns is held inside those limits instead. `menu` (`WW2C.BM`) called
+   `MouseBorder` with the limits of its own part of the screen. `Mickey` replaced them before reading, so
+   their only effect in DOS was to pull the cursor into that part. That jump is not done, and the calls are
+   gone (`TODO.md`).
+6. *(Removed: it was about `MOUSE.BI`, which item 5 removes.)*
 7. **The sound files play through QB64's own sound** (`playsound` in `QB64.BM`). The original played them
    with DOS programs: `plany.exe` or `sound.exe` for the `.VOC` effects (`sndblst`, `WW2B.BM`) and
    `playmidi` for the `.MID` tunes (`gloat`, `WW2C.BM`). Those `SHELL` calls now call `playsound`.

@@ -10,3 +10,7 @@ tests/out/
 # High scores, which the game creates when a game ends (HI1943.WW2 and so on).
 hi*.ww2
 HI*.WW2
+
+# The saved games and high scores that came with the game, which every test run starts with
+# (tests/play.py, TEST_DATA).
+!tests/data/*

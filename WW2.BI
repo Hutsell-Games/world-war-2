@@ -93,7 +93,6 @@ DIM SHARED featx(19), featy(19), shipx(2), shipy(2), gci(12)
 '==========================================================================
 '$INCLUDE: 'folders.bi'
 '$INCLUDE: 'general.bi'
-'$INCLUDE: 'mouse.bi'
 DIM SHARED yourname$(10), skorz&(2, 5)
 DIM SHARED usai(80), uki(80), fri(80), poli(80), rusi(80), geri(80), alship(100)
 DIM SHARED para(60), axship(100), drop(140), ike1(80), ike2(80), ike3(80), ike4(80)
