@@ -29,7 +29,7 @@ and `EDIT.EXE` are removed from this branch, because the builds take their names
 | `WW2A.BM` | The SUBs that were in `WW2.BAS` |
 | `WW2B.BM`, `WW2C.BM` | The PDS modules `WW2B.BAS` and `WW2C.BAS` without their headers |
 | `MICKEY.BM` | The mouse routines (`MICKEY.BAS`) |
-| `QB64.BM` | What the game needs from PDS 7.1 that QB64 does not have: `DIR$` |
+| `QB64.BM` | What the game needs from PDS 7.1 that QB64 does not have: `DIR$`, `CURDIR$` and the playing of the sound files |
 | `SCRIPT.BM` | The hooks for the whole-game scripts: the seed, and the announcement of each wait for a key |
 | `EDIT.BAS` | The scenario editor, a program of its own (1,661 lines). It includes `EDIT.BI`, `QB64.BM` and `SCRIPT.BM` |
 | `EDIT.BI` | The editor's declarations, as they came |
@@ -53,6 +53,13 @@ and `EDIT.EXE` are removed from this branch, because the builds take their names
 4. **`DIR$` is a FUNCTION in `QB64.BM`**, written with QB64's `_FILES$`. The 16 calls are unchanged, except
    `t$ = DIR$` in `filer` (`WW2B.BM`), which is now `t$ = DIR$("")`: a FUNCTION of QB64 cannot leave its argument
    out.
+
+   `CURDIR$` is a FUNCTION in `QB64.BM` too, written with QB64's `_CWD$`. It gives the current folder without
+   the separator `_CWD$` ends with, as PDS does (`C:\GAMES\WW2`). The two calls in `WW2.BAS` are unchanged:
+   `pb$ = CURDIR$` at the start, and `LEFT$(CURDIR$, 2)`, the first entry of the PBM Drive menu. The first
+   port missed it. QB64 has no `CURDIR$`, and both compilers build a bare `CURDIR$` as a string variable,
+   with no message. It was always `""`, so the PBM Drive menu showed a blank first entry
+   (`TestCurdirIsTheCurrentFolder` in `tests\rules_test.bas`).
 5. **`MouseDriver` in `MICKEY.BM` uses QB64's mouse statements.** The original called the DOS mouse driver with
    `Interrupt 51`. The new body does the six driver functions the game uses (0, 1, 2, 3, 7, 8). The limits set by
    `MouseBorder` no longer hold the real cursor; the position the game reads is kept inside them instead.
@@ -183,6 +190,9 @@ See [TODO.md](../TODO.md).
   ends with its SUB. QB64Rust's `verification\v17_d_err_on_local_error_sub` and `v17_d_on_error_sub_stays`
   measure both.
 - A named `COMMON` block is rejected by both compilers, with a clearer message from QB64Rust.
+- **A bare `CURDIR$` builds with no message in both compilers**, as a string variable that is always `""`
+  (measured 2026-11-05). PDS 7.1's `CURDIR$` returns the current folder. So the port lost it silently, and
+  only a review found it (item 4).
 - **A SUB that ends with a `GOSUB` pending breaks the caller's next `RETURN`**, in QB64Rust as in QB64pe.
   QB64Rust keeps QB64pe's single `GOSUB` stack on purpose (QB64Rust's `study\00` §6, "Kept"). QB 4.5 and
   PDS 7.1 give the other result. The test program: main does `GOSUB ask`, `ask` calls a SUB that does

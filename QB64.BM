@@ -1,6 +1,7 @@
 ' ===========================================================================
-' QB64.BM - what the game needs from BASIC PDS 7.1 that QB64 does not have.
-' Included at the end of WW2.BAS.
+' QB64.BM - what the game needs from BASIC PDS 7.1 that QB64 does not have:
+' DIR$, CURDIR$ and the playing of sound files.
+' Included at the end of WW2.BAS and EDIT.BAS.
 ' ===========================================================================
 
 ' PDS 7.1's DIR$: the first file that matches spec$, or the next match of
@@ -12,6 +13,18 @@ DO WHILE RIGHT$(f$, 1) = CHR$(92) OR RIGHT$(f$, 1) = "/"
 	f$ = _FILES$
 LOOP
 DIR$ = UCASE$(f$)
+END FUNCTION
+
+' PDS 7.1's CURDIR$ with no drive given: the current folder, such as
+' C:\GAMES\WW2, with no separator at its end unless it is a root (C:\).
+' QB64 has no CURDIR$. Without this FUNCTION, QB64pe and QB64Rust both
+' build CURDIR$ as a string variable, which is always "". The game uses it
+' for the PBM drive (WW2.BAS). QB64's _CWD$ ends with a separator.
+FUNCTION CURDIR$
+c$ = _CWD$
+root = LEN(c$) = 1 OR (LEN(c$) = 3 AND MID$(c$, 2, 1) = ":")
+IF NOT root AND (RIGHT$(c$, 1) = CHR$(92) OR RIGHT$(c$, 1) = "/") THEN c$ = LEFT$(c$, LEN(c$) - 1)
+CURDIR$ = c$
 END FUNCTION
 
 ' The DOS game played its sound files with DOS programs: plany.exe or

@@ -351,6 +351,15 @@ CALL evaluate(1, x)
 AssertEqualInt 0, x, "20 against 5000"
 END SUB
 
+' ---------------------------------------------------------------- CURDIR$
+' QB64.BM's CURDIR$ is the current folder as PDS 7.1 gives it: QB64's
+' _CWD$ without the separator at its end. Without the FUNCTION, CURDIR$
+' would be an empty string variable.
+
+SUB TestCurdirIsTheCurrentFolder
+AssertEqualStr _CWD$, CURDIR$ + RIGHT$(_CWD$, 1), "CURDIR$ and _CWD$"
+END SUB
+
 '$INCLUDE: '../ww2a.bm'
 '$INCLUDE: '../ww2b.bm'
 '$INCLUDE: '../ww2c.bm'

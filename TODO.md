@@ -12,6 +12,9 @@ Open work on the QB64 port (branch `qb64rust`). Remove an item when it is done.
     whether QB64Rust and QB64pe fold case on Linux. If they do not, rename the files to lower case, with
     `git mv`.
   - `write_cfg` in `play.py` writes `WW2.CFG` and relies on Windows opening it as `ww2.cfg`.
+  - The PBM drive is a DOS drive letter. The PBM Drive menu offers `LEFT$(CURDIR$, 2)`, `A:` and `B:`,
+    and the shipped `WW2.CFG` holds `"C:"`. The PBM file is then `C:pbm`. On Linux, `CURDIR$` starts
+    with `/`, so its first entry is `/h` or similar, and `C:pbm` is a file of that name. No script plays PBM.
 
   Then run `play.py check` on Linux under Xvfb, as QB64Rust's own Linux steps do, and compare the screens
   with the recordings made on Windows.
