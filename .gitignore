@@ -2,3 +2,11 @@
 tests/out/
 *.pyc
 *.exe
+
+# Saved games, written by playing (Files, Save and the autosave to WWII5.SAV).
+*.sav
+*.SAV
+
+# High scores, which the game creates when a game ends (HI1943.WW2 and so on).
+hi*.ww2
+HI*.WW2

@@ -21,7 +21,9 @@ qb64rust -x EDIT.BAS -o edit.exe
 ```
 
 The builds are not committed (`.gitignore`). The original DOS programs `WW2.EXE` and `EDIT.EXE`
-are not on this branch, because the builds take their names; they are on `main`. Each merge
+are not on this branch, because the builds take their names; they are on `main`. So are the
+files the port does not use: the DOS sound drivers and players, the DOS batch files, the PDS build
+files, the demos, `WW2TITLE.EXE`, `WW2CITY.EXE` and `WNEM.ZIP`. Each merge
 into `main` also builds both programs on GitHub Actions (it can be started by hand too, under
 Actions, Build, Run workflow): the run's artifact `world-war-2` holds
 them with the data files, ready to play.

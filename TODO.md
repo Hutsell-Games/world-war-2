@@ -51,7 +51,8 @@ Open work on the QB64 port (branch `qb64rust`). Remove an item when it is done.
 - **A rare crash in `play.py check`.** Once, in a `check` of all the scripts with `--jobs 6`,
   `endturn-1943-allied` ended with exit code 3221225477 (0xC0000005, an access violation) in the QB64Rust
   build. Run alone three times, it passed each time. Find out whether it comes from the QB64Rust runtime.
-- **The title and burning-city screens.** `ww2title.exe` and `ww2city.exe` are DOS programs with no
-  source, so their `SHELL` lines are comments. The screens are missing.
+- **The title and burning-city screens.** `ww2title.exe` and `ww2city.exe` were DOS programs with no
+  source, so their `SHELL` lines are comments and the screens are missing. Pictures of both, taken in
+  DOSBox, are `devnotes/WW2TITLE.png` and `devnotes/WW2CITY.png`. They could be drawn again in BASIC.
 - **The mouse cursor's limits.** `MouseBorder` no longer confines the real cursor. Only the position the
   game reads is held inside the limits.

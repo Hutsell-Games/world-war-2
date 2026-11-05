@@ -91,7 +91,9 @@ and `EDIT.EXE` are removed from this branch, because the builds take their names
    2, and can be changed in the game's Sounds menu.
 8. **`SHELL "ww2title.exe"` and `SHELL "ww2city.exe"` are comments** (`title2` and `burn` in `WW2B.BM`). Both are
    DOS programs with no source here, and 64-bit Windows cannot run them. The title screen and the burning-city
-   screen are therefore missing.
+   screen are therefore missing. The two programs were removed from this branch (they are on `main`). Run in
+   DOSBox on 2026-11-05, they showed [WW2TITLE.png](WW2TITLE.png) and [WW2CITY.png](WW2CITY.png). Each draws
+   a GIF held inside the EXE, reads no other file, shows it for a few seconds and returns without a key.
 9. **Hooks for the whole-game scripts** (`SCRIPT.BM`). `RANDOMIZE TIMER` is now `CALL scriptstart`. Each wait
    for a key calls `announce` first: `TICK`, the `menu` loop, `Mickey`, the Hall of Fame's `INPUT`, the PBM news
    and the boss screen. A `TICK` with a time above 0 returns at once when the game is scripted, and a saved
