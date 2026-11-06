@@ -91,7 +91,7 @@ SELECT CASE choose
 			FILES pb$ + "pbm"
 			ON ERROR GOTO 0
 			t$ = pb$ + "pbm": a$ = t$ + ".old"
-			SHELL "copy " + t$ + " " + a$
+			CALL scriptshell("copy " + t$ + " " + a$)
 			OPEN "I", 1, pb$ + "pbm"
 			INPUT #1, k
 			IF k > 0 THEN

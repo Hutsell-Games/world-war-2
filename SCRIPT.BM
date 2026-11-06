@@ -33,6 +33,25 @@ SUB scriptcheck
 IF ENVIRON$("WW2_SEED") <> "" THEN scripted = 1
 END SUB
 
+' SHELL cmd$, or under a script the same work done in BASIC. The game and
+' the editor run "copy <from> <to>" (the editor's .bak files, the PBM file's
+' .old copy). A SHELL starts cmd.exe, whose console window shows on the
+' user's desktop even when the program runs on a hidden one, so the scripts
+' must not run it. The copy replaces <to>, as copy does; a missing <from>
+' copies nothing, as copy then only prints a message.
+SUB scriptshell (cmd$)
+IF ENVIRON$("WW2_SEED") = "" THEN SHELL cmd$: EXIT SUB
+c$ = LTRIM$(RTRIM$(cmd$))
+sp = INSTR(c$, " "): verb$ = LCASE$(LEFT$(c$, sp - 1)): args$ = LTRIM$(MID$(c$, sp + 1))
+sp = INSTR(args$, " "): from$ = LEFT$(args$, sp - 1): into$ = LTRIM$(MID$(args$, sp + 1))
+IF verb$ <> "copy" THEN SHELL cmd$: EXIT SUB
+IF NOT _FILEEXISTS(from$) THEN EXIT SUB
+f = FREEFILE: OPEN from$ FOR BINARY AS #f
+d$ = SPACE$(LOF(f)): GET #f, , d$: CLOSE #f
+IF _FILEEXISTS(into$) THEN KILL into$
+f = FREEFILE: OPEN into$ FOR BINARY AS #f: PUT #f, , d$: CLOSE #f
+END SUB
+
 ' Says that the game is about to wait for a key. place names the kind of
 ' wait (1 to 255) and letter$ narrows it (its first character, or ""):
 '   1  a pause that any key ends (TICK)

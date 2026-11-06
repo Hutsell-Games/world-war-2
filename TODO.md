@@ -4,6 +4,11 @@ Open work on the QB64 port (branch `qb64rust`). Remove an item when it is done.
 
 ## The tests
 
+- **The real `SHELL "copy ..."`.** Under a script, `scriptshell` (`SCRIPT.BM`) copies in BASIC, because a
+  `SHELL` opens a console window on the user's desktop (`docs/devnotes.md`, item 13). So no test runs the
+  editor's or the PBM update's `SHELL`. A test of them must run where a window does no harm: in QB64Rust's
+  suites VM, or by hand.
+
 - **Run `tests/play.py` on Linux.** The script already has Linux branches (no console helper, a plain
   kill), but they have never run. Two things stand in the way:
   - File names differ in case. The game opens `ww2.cfg`, `euro1939.dat`, `wwii1.sav` and so on, and the

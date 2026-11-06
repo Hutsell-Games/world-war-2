@@ -172,6 +172,14 @@ and `EDIT.EXE` are removed from this branch, because the builds take their names
     hidden. The other 37 scripts show the same screens as before. They do run `norden`'s give-up exit
     (`WW2C.BM`, line 435). That exit left a stale entry on the stack, but in those games no later `RETURN`
     took it.
+13. **Under a script, `SHELL "copy ..."` is done in BASIC** (2026-11-06). The editor's Save copies the
+    scenario files to `.bak` files, and the PBM update copies the PBM file to `.old`, each by `SHELL`. A
+    `SHELL` starts a `cmd.exe`, whose console window shows on the user's desktop although the scripts run the
+    program on a hidden one. So the three lines now call `scriptshell` (`SCRIPT.BM`), which runs the `SHELL`
+    as before unless `WW2_SEED` is set, and then copies the file itself. Found in the Civil War Battleset
+    port, whose battles each end in such a copy. `edit-1939` gives the same screens and the same `.bak`
+    hashes as before, and a watch of new processes during it saw no `cmd.exe`. No script runs the real
+    `SHELL` now (`TODO.md`).
 
 ## Not done yet
 

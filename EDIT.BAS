@@ -278,11 +278,11 @@ filex:
 				PRINT "First : Make backup files "
 				t$ = "ww" + begin$ + ".bak"
 				' cmd's copy takes a backslash, not the slash of SCNDIR
-				SHELL "copy scenarios" + CHR$(92) + a$ + " scenarios" + CHR$(92) + t$
+				CALL scriptshell("copy scenarios" + CHR$(92) + a$ + " scenarios" + CHR$(92) + t$)
 					PRINT "Backup file "; t$; " created - OK"
 				a$ = "euro" + begin$ + ".dat"
 				t$ = "euro" + begin$ + ".bak"
-				SHELL "copy scenarios" + CHR$(92) + a$ + " scenarios" + CHR$(92) + t$
+				CALL scriptshell("copy scenarios" + CHR$(92) + a$ + " scenarios" + CHR$(92) + t$)
 					PRINT "Backup file "; t$; " created - OK"
 				TICK 5
 			END IF

@@ -58,7 +58,7 @@ the script again (`record <name>`) and say so in the commit message.
 
 ## How the game takes part
 
-The game has four hooks for the scripts, all in `SCRIPT.BM`. They do nothing unless the game is started with
+The game has five hooks for the scripts, all in `SCRIPT.BM`. They do nothing unless the game is started with
 the environment variable `WW2_SEED` set, as `play.py` does:
 
 1. **A fixed seed.** `RANDOMIZE` takes `WW2_SEED` instead of `TIMER`, so every run of a script is the same game.
@@ -69,6 +69,9 @@ the environment variable `WW2_SEED` set, as `play.py` does:
    such a pause is drawn and gone before the next checkpoint, so no script sees it.
 4. **A fixed date.** A saved game holds the date 01-01-2000 instead of today's, so that the Saved Games menu
    looks the same on every day.
+5. **No `SHELL`.** The editor's `.bak` files and the PBM file's `.old` copy are made by `SHELL "copy ..."`.
+   Under a script `scriptshell` copies the file itself. A `SHELL` starts a `cmd.exe`, and its console window
+   shows on your desktop even though the program runs on a hidden one.
 
 The places a script can name (`play until <place>[:<letter>]`, `rule <place>[:<letter>] <keys>`):
 
@@ -132,8 +135,9 @@ Each file a `#! files` line names becomes a last checkpoint, `file <name> <hash>
 The hash takes CRLF line ends as LF. A name may start with a folder, written with `/`. Each part of the
 name matches whatever its case.
 
-`edit-1939` passes on Windows only. Its two `.bak` files are made by the editor's `SHELL "copy"`, a Windows
-command, so on another system they would be recorded as `missing`.
+`edit-1939` passes on Windows only. Under a script its two `.bak` files are made by `scriptshell` in BASIC,
+not by the Windows command `copy`, but the editor names them with a backslash (`scenarios\ww1939.bak`), which is
+not a folder separator elsewhere. On another system they would be recorded as `missing`.
 
 The `ww2.cfg` of a run is written fresh. By default it is one player on the Allied side, difficulty 3, no
 sound, keyboard only (`mighty=0`) and no autosave. The fields are `CFG_FIELDS` in `play.py`. Each run starts
