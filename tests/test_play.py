@@ -95,6 +95,15 @@ class ScriptTest(unittest.TestCase):
         self.assertEqual(s.files, ["WW1939.INI", "EURO1939.DAT", "ww1939.bak"])
         self.assertEqual(self.load("key space\n").program, "ww2")
 
+    def test_start_files(self):
+        s = self.load("#! start pbm/1942-axis.pbm pbm\n")
+        self.assertEqual(s.start, [("pbm/1942-axis.pbm", "pbm")])
+        self.assertEqual(self.load("key space\n").start, [])
+        with self.assertRaises(play.SetupError):
+            self.load("#! start pbm/none.pbm pbm\n")
+        with self.assertRaises(play.SetupError):
+            self.load("#! start pbm/1942-axis.pbm\n")
+
     def test_unknown_program(self):
         with self.assertRaises(play.SetupError):
             self.load("#! program demo\n")
@@ -138,7 +147,8 @@ class ScriptTest(unittest.TestCase):
     def test_cfg_line_in_filer_order(self):
         with tempfile.TemporaryDirectory() as d:
             play.write_cfg(Path(d), dict(play.CFG_FIELDS))
-            self.assertEqual((Path(d) / "WW2.CFG").read_text(), '1,0,3,1,2,0,0,0,0,1,0,1,"",0\n')
+            self.assertEqual([p.name for p in Path(d).iterdir()], ["ww2.cfg"])
+            self.assertEqual((Path(d) / "ww2.cfg").read_text(), '1,0,3,1,2,0,0,0,0,1,0,1,"",0\n')
 
 
 class CopyDataTest(unittest.TestCase):
@@ -154,6 +164,8 @@ class CopyDataTest(unittest.TestCase):
             (game / "WWII1.SAV").write_text("played")
             (game / "wwii9.sav").write_text("played")
             (game / "HI1939.WW2").write_text("played")
+            for name in ("pbm", "pbm.old", "pbm.&&&"):
+                (game / name).write_text("played")
             (data / "WWII1.SAV").write_text("shipped")
             (data / "HI1943.WW2").write_text("shipped")
             play.copy_data(work, game, data)
@@ -164,9 +176,31 @@ class CopyDataTest(unittest.TestCase):
             self.assertEqual((work / "scenarios" / "EURO1939.DAT").read_text(), "map")
 
     def test_the_repo_has_the_test_data(self):
-        names = {p.name.upper() for p in play.TEST_DATA.iterdir()}
-        self.assertEqual(names, {"WWII1.SAV", "WWII2.SAV", "WWII3.SAV", "WWII4.SAV", "WWII5.SAV",
-                                 "HI1943.WW2", "HI1944.WW2"})
+        # The files every run starts with; the folders hold files a script names with "#! start".
+        names = {p.name for p in play.TEST_DATA.iterdir() if p.is_file()}
+        self.assertEqual(names, {"wwii1.sav", "wwii2.sav", "wwii3.sav", "wwii4.sav", "wwii5.sav",
+                                 "hi1943.ww2", "hi1944.ww2"})
+
+    def test_each_pbm_script_starts_from_the_file_the_one_before_wrote(self):
+        # A play-by-mail game takes three runs; each starts from the PBM file of the one before.
+        # When a script before is recorded again, its file must be copied to tests/data/pbm.
+        chain = [("pbm-1942-begin", "pbm/1942-axis.pbm", "pbm-1942-axis"),
+                 ("pbm-1942-axis", "pbm/1942-allied.pbm", "pbm-1942-allied")]
+        for writer, data, reader in chain:
+            written = play.entries((play.SCRIPTS / f"{writer}.screen").read_bytes())[-1].decode()
+            digest = play.file_entries(play.TEST_DATA, [data]).decode().split()[2]
+            self.assertEqual(written, f"file pbm {digest}", writer)
+            self.assertIn(f"#! start {data} pbm\n", (play.SCRIPTS / f"{reader}.keys").read_text())
+
+    def test_data_file_names_are_in_lower_case(self):
+        # The game opens its files by lower-case names (ww2.cfg, scenarios/euro1939.dat, ...).
+        # On Linux a name in another case is another file, so the files must match.
+        # The names are read from the folders, since Windows finds a file whatever its case.
+        folders = [play.GAME / f for f in play.DATA_FOLDERS] + [play.TEST_DATA, play.TEST_DATA / "pbm"]
+        names = [p.name for f in folders for p in f.iterdir() if p.is_file()]
+        self.assertGreater(len(names), 60)
+        self.assertEqual([n for n in names if n != n.lower()], [])
+        self.assertIn("ww2.cfg", [p.name for p in play.GAME.iterdir()])
 
 
 class CoverageTest(unittest.TestCase):

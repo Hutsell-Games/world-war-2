@@ -5,7 +5,7 @@
 ' zero. A test sets the few values the SUB reads, calls it and checks what
 ' the code gives today. These tests record behavior; they do not judge it.
 
-'$INCLUDE: '../ww2.bi'
+'$INCLUDE: '../WW2.BI'
 
 ' ---------------------------------------------------------------- airdist
 ' airdist gives the distance from a side's air base to a city, or -1 when
@@ -360,8 +360,44 @@ SUB TestCurdirIsTheCurrentFolder
 AssertEqualStr _CWD$, CURDIR$ + RIGHT$(_CWD$, 1), "CURDIR$ and _CWD$"
 END SUB
 
-'$INCLUDE: '../ww2a.bm'
-'$INCLUDE: '../ww2b.bm'
-'$INCLUDE: '../ww2c.bm'
-'$INCLUDE: '../qb64.bm'
-'$INCLUDE: '../script.bm'
+' ---------------------------------------------------------------- the PBM drive
+' On Windows the PBM Drive menu starts with the drive the game runs from, and a
+' drive in ww2.cfg is kept. Elsewhere both are the game's folder, "./", and a
+' drive that is not a DOS drive ("" or a folder) is kept.
+SUB TestPbmDriveOnThisSystem
+IF INSTR(_OS$, "[WINDOWS]") THEN
+    AssertEqualStr pbmhere$, LEFT$(_CWD$, 2), "pbmhere$ on Windows"
+    AssertEqualStr pbmdrive$("C:"), "C:", "a drive on Windows"
+ELSE
+    AssertEqualStr pbmhere$, "./", "pbmhere$ off Windows"
+    AssertEqualStr pbmdrive$("C:"), "./", "a DOS drive off Windows"
+    AssertEqualStr pbmdrive$("A:"), "./", "a floppy off Windows"
+END IF
+AssertEqualStr pbmdrive$(""), "", "no drive"
+AssertEqualStr pbmdrive$("./"), "./", "the game's folder"
+END SUB
+
+' ---------------------------------------------------------------- exename$, slashed$
+' RUN names ww2.exe and edit.exe on Windows, ./ww2 and ./edit elsewhere (the
+' shell would look for a bare name on the PATH).
+SUB TestExeNameOnThisSystem
+IF INSTR(_OS$, "[WINDOWS]") THEN
+    AssertEqualStr exename$("edit"), "edit.exe", "the editor on Windows"
+ELSE
+    AssertEqualStr exename$("edit"), "./edit", "the editor off Windows"
+END IF
+END SUB
+
+' scriptshell's copy turns each backslash into a slash.
+SUB TestSlashedTurnsEveryBackslash
+AssertEqualStr slashed$("scenarios" + CHR$(92) + "ww1939.ini"), "scenarios/ww1939.ini", "one"
+AssertEqualStr slashed$(CHR$(92) + "a" + CHR$(92) + CHR$(92) + "b" + CHR$(92)), "/a//b/", "several"
+AssertEqualStr slashed$("pbm"), "pbm", "none"
+AssertEqualStr slashed$(""), "", "empty"
+END SUB
+
+'$INCLUDE: '../WW2A.BM'
+'$INCLUDE: '../WW2B.BM'
+'$INCLUDE: '../WW2C.BM'
+'$INCLUDE: '../QB64.BM'
+'$INCLUDE: '../SCRIPT.BM'

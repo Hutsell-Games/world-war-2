@@ -34,7 +34,7 @@ reach it. Everything a run makes goes into `tests\out\`, which git ignores. A bu
 source file, the compiler or the screen hook changed. What a command prints also goes to
 `tests\out\last-<command>.txt`.
 
-A whole `check` of the 41 scripts takes about 50 seconds with `--jobs 4`. `record` of all of them takes a few
+A whole `check` of the 49 scripts takes about a minute with `--jobs 4`. `record` of all of them takes a few
 minutes, because each script runs five times.
 
 ### When a check fails
@@ -129,29 +129,43 @@ Each script is a keys file with lines that set up its run, which `play.py` reads
 #! timeout 300           the longest the run may take, in seconds
 #! program edit          the program the script plays: ww2 (the default) or edit (EDIT.BAS)
 #! files scenarios/WW1939.INI    files to check after the run, by their hashes
+#! start pbm/1942-axis.pbm pbm   a file of tests/data that the run's folder holds, under a name of its own
 ```
 
 Each file a `#! files` line names becomes a last checkpoint, `file <name> <hash>`, or `file <name> missing`.
 The hash takes CRLF line ends as LF. A name may start with a folder, written with `/`. Each part of the
 name matches whatever its case.
 
-`edit-1939` passes on Windows only. Under a script its two `.bak` files are made by `scriptshell` in BASIC,
-not by the Windows command `copy`, but the editor names them with a backslash (`scenarios\ww1939.bak`), which is
-not a folder separator elsewhere. On another system they would be recorded as `missing`.
+Under a script the editor's two `.bak` files are made by `scriptshell` in BASIC, not by the Windows
+command `copy`. The editor names them with a backslash (`scenarios\ww1939.bak`), which is not a folder
+separator on Linux, so `scriptshell` turns it into a slash. `edit-1939` then checks the same `.bak` files
+on both systems.
+
+A `#! start` line puts a file of `tests\data\` into the run's folder before the game starts. The
+play-by-mail scripts use it: a PBM game takes one run per turn, and each turn starts from the PBM file the
+turn before wrote (`tests\data\pbm\`). When `pbm-1942-begin` or `pbm-1942-axis` is recorded again with a
+new file, copy its `pbm` from `tests\out\run\` to the next script's file. A test of `play.py` checks that
+each file matches the hash the turn before recorded.
 
 The `ww2.cfg` of a run is written fresh. By default it is one player on the Allied side, difficulty 3, no
 sound, keyboard only (`mighty=0`) and no autosave. The fields are `CFG_FIELDS` in `play.py`. Each run starts
 in a fresh copy of the game's data files in `tests\out\run\`, so the files in the repo are never changed.
 
 The saved games and high scores of a run come from `tests\data\`, not from the repo's folder. They are the
-ones that came with the game: `WWII1.SAV` to `WWII5.SAV`, `HI1943.WW2` and `HI1944.WW2`. The scripts were
+ones that came with the game: `wwii1.sav` to `wwii5.sav`, `hi1943.ww2` and `hi1944.ww2`. The scripts were
 recorded with them. The Files menu offers Load only when a saved game exists, and the 1943 and 1944 games
-end at a Hall of Fame that lists them. The repo's folder no longer holds them (`.gitignore`), and the saves
-and high scores that playing leaves there are never copied into a run.
+end at a Hall of Fame that lists them. The repo's folder no longer holds them (`.gitignore`), and the saves,
+high scores and play-by-mail files (`pbm`, `pbm.old`, `pbm.&&&`) that playing leaves there are never copied
+into a run. A `pbm` there would otherwise make every run's title menu offer Continue PBM Game.
 
 A script ends the game the way a player does: Quit at the title menu, then `repeat space` for END's "Press any
 key to continue". A run that ends any other way (a `prompt` that times out, no rule for a wait, a crash)
-fails, and the last line of its state file says why.
+fails, and the last line of its state file says why. A runtime error such as "Subscript out of range" ends
+the run at once, because `play.py` sets `QB64PE_NOPROMPT=y`. Without it the error's dialog would wait on the
+hidden desktop until the run's timeout. The QB64Rust build then exits with 1. The QB64pe build exits with 0
+(`libqb_exit(0)` in its `error_handle.cpp`), so its run looks finished, and only `record` shows the crash, as
+a difference from the QB64Rust runs. On Windows the error's message does not reach the run's `log.txt`
+(seen 2026-11-07), so look for the line the last checkpoint leads to.
 
 ### Generated scripts
 
@@ -184,8 +198,14 @@ answer that message (`1:N`) with Space, then Esc, which leaves Recruit. `twoplay
 | `menus-gosub-1939-allied` | Menus answered by a letter or Esc inside a `GOSUB` routine, which once stopped the game with "RETURN without GOSUB" (`docs/devnotes.md`, item 12): Start Year, Editor then No, Files Quit then Esc, Saved Games. It also plays the other exits that item 12 rewrote: Esc at Start Year, Esc at Saved Games after Load and after Save, and F7. It then quits with Files, Quit, Yes |
 | `mouse-1939-allied` | The mouse (`mighty=1`): clicks at a "press a key" pause, the title menu, Start Year and the main menu; an army moved from Paris to Reims by two clicks on the map; right clicks as Esc. It then quits with Files, Quit, Yes, given as keys |
 | `edit-1939` | The editor: Esc at Starting Year; loads 1939; changes Technology, Cash, a fort, the navy and the side; saves as 1939, loads again, quits. It checks the saved scenario and map and the two `.bak` files |
+| `edit-commands-1939` | The editor's other commands: Army at Paris (Edit, Place with a 50% chance, Rotate, Remove); Army at Berlin, which first removes the Axis army there; Navy Move; Air Force Move and Edit; Cities; Capital. It saves as 1939, with a slot emptied in the middle and an army with a 50% chance (`docs/devnotes.md`, item 18), loads the scenario back and saves it again. It checks the saved scenario and map, and the `.bak` files the second save made of the first |
+| `paratroop-1941-axis` | A paratroop drop from Berlin to Bern by the From and To menus, and its landing at the next month's update; then END TURN to the end |
+| `paratroop-1939-axis` | Paratroop when no Elite army can go, which once stopped the game (`docs/devnotes.md`, item 16) |
+| `mouse-exits-1939-allied` | The mouse exits of `menu` that `mouse-1939-allied` does not play: a key while an army is shown, a click on the air force, a city clicked for a new air base, a click on the navy, and two clicks on the side's flag, which change the side |
+| `mouse-paratroop-1941-axis` | A paratroop drop whose city is clicked on the map |
+| `pbm-1942-begin`, `pbm-1942-axis`, `pbm-1942-allied` | A play-by-mail game, one turn per script: Begin PBM and the Allied turn; Continue PBM Game, the news and the Axis turn; the news, the update phase and the next Allied turn. Each checks the PBM file it writes |
 
-The first three then end every turn to the end of the game.
+The first three, and `paratroop-1941-axis`, then end every turn to the end of the game.
 
 ### Writing a script by hand
 
@@ -229,20 +249,21 @@ Points that matter:
 and a table per SUB, the least covered first (`tests\out\coverage\subs.txt`). With no script named, it also
 runs the unit tests with `qb64rust test tests --coverage` and says how many statements they reach that no
 script does. With scripts named, it counts only those scripts; `--unit-tests` adds the unit tests. With the
-38 scripts of the game and the unit tests, 81% of the game's lines with a statement run (2026-11-05: 3,931 of
-4,839 lines run in full or in part). The editor's report is `report-edit.txt`: `edit-1939` runs 58% of its
-lines with a statement (786 of 1,360). Of the SUBs that the refactoring is about, `smarts` runs 93% of its
-statements, `battle` 91%, `tupdate` 85%, `airforce` 82% and `navy` 79%.
+47 scripts of the game and the unit tests, 88% of the game's lines with a statement run (2026-11-07: 4,257 of
+4,830 lines run in full or in part; 81% with 38 scripts on 2026-11-05). The editor's report is
+`report-edit.txt`: `edit-1939` and `edit-commands-1939` run 78% of its lines with a statement (1,095 of
+1,399). `paratroop` runs 80% of its statements.
 
 Not covered:
 
-- **Most of the mouse.** Only `mouse-1939-allied` plays with the mouse. It does not click the air force, a
-  navy, a paratroop or bombing target, or the side switch beside a menu (`TODO.md`).
-- **Paratroop.** After its first wait no further wait is announced; not looked into yet.
-- **Play by mail** (Begin PBM, the PBM news) and PBM Drv, whose menu shows the drive the game runs from.
+- **Much of the mouse.** Three scripts play with the mouse and reach every exit of `menu`'s `selex`, but most
+  commands are still given as keys there.
+- **The PBM drive.** The PBM Drive menu's first entry is the drive the game runs from, which differs from
+  machine to machine, so the PBM scripts leave that menu with Esc and take no digest while it shows. No
+  script ends a PBM game (`pbmview`).
 - **Sound and the DOS programs.** They are not ported (`TODO.md`).
-- **Most of the editor** (`EDIT.BAS`). `edit-1939` covers Technology, Cash, Fortify, Navy Edit, Side, Save,
-  Load and Quit, but not Army, Navy Move, Air Force, Cities or Capital, and no unit test calls its SUBs
-  (`TODO.md`). `coverage` reports the editor apart: `tests\out\coverage\report-edit.txt` and `subs-edit.txt`.
+- **The editor's SUBs one by one.** The two editor scripts give every command of its main menu, but no unit
+  test calls its SUBs. `coverage` reports the editor apart: `tests\out\coverage\report-edit.txt` and
+  `subs-edit.txt`.
 - **The boss screen.** It ends only with Ctrl+B, which a keys file cannot give.
 - **Timed pauses as a player sees them.** Under a script they return at once.

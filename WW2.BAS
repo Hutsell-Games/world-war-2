@@ -15,7 +15,7 @@ DECLARE SUB rotate (who%)
 DECLARE SUB showmove (who%)
 DECLARE SUB submarine (flag%)
 DECLARE SUB title2 ()
-REM $INCLUDE: 'ww2.bi'
+REM $INCLUDE: 'WW2.BI'
 sblast$ = ""
 pb$ = CURDIR$
 
@@ -800,10 +800,12 @@ redux:
 pbmdrv:
 		CALL clrrite
 		mtx$(0) = "PBM Drive"
-		mtx$(1) = LEFT$(CURDIR$, 2)
+		mtx$(1) = pbmhere$
 		mtx$(2) = "A:"
 		mtx$(3) = "B:"
 		size = 3: tlx = 67
+		' QB64 port: off Windows there are no drives, only the game's folder (pbmhere$).
+		IF NOT onwindows% THEN size = 1
 		CALL menu(0)
 		IF choose > 0 THEN pb$ = mtx$(choose)
 		CALL clrrite
@@ -830,7 +832,7 @@ sacf:
 	CASE 10
 		GOSUB yesno
 		IF choose <> 1 GOTO menu0
-		RUN "edit.exe"
+		RUN exename$("edit")
 '==========================================================================
 '                               Files
 '==========================================================================
@@ -984,8 +986,8 @@ yesno:
 	CALL menu(0): CALL clrrite
 	RETURN
 
-'$INCLUDE: 'ww2a.bm'
-'$INCLUDE: 'ww2b.bm'
-'$INCLUDE: 'ww2c.bm'
-'$INCLUDE: 'qb64.bm'
-'$INCLUDE: 'script.bm'
+'$INCLUDE: 'WW2A.BM'
+'$INCLUDE: 'WW2B.BM'
+'$INCLUDE: 'WW2C.BM'
+'$INCLUDE: 'QB64.BM'
+'$INCLUDE: 'SCRIPT.BM'

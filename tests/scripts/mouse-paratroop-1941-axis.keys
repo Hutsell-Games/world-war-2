@@ -1,0 +1,63 @@
+# A paratroop drop with the mouse (mighty=1), written by hand. In June 1941 the Axis side gives
+# COMMANDS and Paratroop by their letters, which Mickey also takes, and Enter at the From menu
+# (Berlin). The To menu waits in Mickey; a click on Munich (city 36, at 280, 163) chooses it there
+# (menu's selex, WW2C.BM line 1262). The drop ends at a pause, which a click ends. Then a right
+# click (Esc) at COMMANDS, and Files, Quit, Yes by their letters.
+#! seed 1941
+#! cfg side=2 mighty=1
+
+# The pause before the title menu; Start NEW Game; Start Year 1941; the briefing.
+prompt
+mouse 100 100
+press 1
+release 1
+prompt
+mouse 60 263
+press 1
+release 1
+prompt
+mouse 165 231
+press 1
+release 1
+prompt
+digest
+press 2
+release 2
+
+# COMMANDS, Paratroop, Berlin.
+prompt
+digest
+text c
+prompt
+text p
+prompt
+digest
+key enter
+# The To menu: Munich, clicked on the map.
+prompt
+digest
+mouse 280 163
+press 1
+release 1
+# The pause after the drop.
+prompt
+digest
+press 1
+release 1
+
+# COMMANDS: a right click.
+prompt
+digest
+press 2
+release 2
+
+# Files, Quit, then Yes by its letter, and a key for END's "Press any key to continue".
+prompt
+digest
+text f
+prompt
+text q
+prompt
+digest
+text y
+repeat space

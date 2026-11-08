@@ -34,15 +34,16 @@ and `EDIT.EXE` are removed from this branch, because the builds take their names
 | `EDIT.BAS` | The scenario editor, a program of its own (1,661 lines). It includes `EDIT.BI`, `QB64.BM` and `SCRIPT.BM` |
 | `EDIT.BI` | The editor's declarations, as they came, and the include of `FOLDERS.BI` |
 | `FOLDERS.BI` | The names of the three data folders, as `CONST`s. Included by `WW2.BI` and `EDIT.BI` |
-| `graphics\` | Pictures (`.VGA`), the F1 help screens (`HELP.SC1` for the game, `HELP.SC2` for the editor), the map drawings (`EUROPE.GRF`, `SUB1.GRF`, `SUB2.GRF`) and `EUROPE.MAP`, which the code does not read |
-| `sound\` | Sound effects (`.VOC`) and tunes (`.MID`) |
+| `ww2.cfg` | The settings the game starts with (`filer`, `WW2B.BM`). Every data file has a lower-case name, the name the code opens (item 17) |
+| `graphics\` | Pictures (`.vga`), the F1 help screens (`help.sc1` for the game, `help.sc2` for the editor), the map drawings (`europe.grf`, `sub1.grf`, `sub2.grf`) and `europe.map`, which the code does not read |
+| `sound\` | Sound effects (`.voc`) and tunes (`.mid`) |
 | `docs\` | These notes and their screenshots (`WW2TITLE.png`, `WW2CITY.png`), and the game's original documents: the manual `WW2.DOC`, its text marked up with `@` headings (`WW2.TXT`) and `RELEASE_NOTES.TXT` |
-| `scenarios\` | The scenarios (`EURO1939.DAT` to `EURO1945.DAT`, `WW1939.INI` to `WW1945.INI`), `WW2BASE.INI` and `SPECIAL.EVT`. The editor writes its saves and `.bak` backups here |
+| `scenarios\` | The scenarios (`euro1939.dat` to `euro1945.dat`, `ww1939.ini` to `ww1945.ini`), `ww2base.ini` and `special.evt`. The editor writes its saves and `.bak` backups here |
 | `tests\rules_test.bas` | Unit tests, run by `qb64rust test` |
 | `tests\play.py` | Plays the scripts and compares their screens (`check`, `compare`, `record`, `coverage`, `explore`) |
 | `tests\make_scripts.py` | Writes the generated scripts, after probing each game |
 | `tests\scripts\` | The scripts (`<name>.keys`) and their recorded screens (`<name>.screen`) |
-| `tests\data\` | The saved games (`WWII1.SAV` to `WWII5.SAV`) and high scores (`HI1943.WW2`, `HI1944.WW2`) that came with the game. Every script's run starts with them |
+| `tests\data\` | The saved games (`wwii1.sav` to `wwii5.sav`) and high scores (`hi1943.ww2`, `hi1944.ww2`) that came with the game. Every script's run starts with them. `pbm\` holds the play-by-mail files that the PBM scripts start from |
 | `tests\test_play.py` | Tests of `play.py` itself |
 | `tests\README.md` | How the tests work and how to write a script |
 | `.github\workflows\build.yml` | Builds `ww2.exe` and `edit.exe` with QB64Rust on each merge into `main` or when started by hand, and uploads them with the data files as the artifact `world-war-2` |
@@ -198,6 +199,65 @@ and `EDIT.EXE` are removed from this branch, because the builds take their names
     letter `N`, so that a script can answer it apart from the other pauses. Found by the two-player 1944
     game, whose Allies run out of commanders in August 1948. Enter at every menu chose the same city for
     ever, so `twoplayer-1944` could not be written (`tests/README.md`, "Generated scripts").
+16. **Paratroop with no army that can go no longer stops the game** (2026-11-07). When no Elite army
+    fits the paratroop capacity, `movefrom` (`WW2A.BM`) returns `index = -1`. `paratroop` then read
+    `armyloc(index)` before it tested `index < 0`. PDS checks no array bounds, so the original read the word
+    before the array and went on. QB64pe and QB64Rust stop with "Subscript out of range" (error 9). The
+    two lines are now in the other order, so the game says "NO ELIGIBLE UNITS TO PARATROOP" as its author
+    meant, and shows COMMANDS again. Found by `paratroop-1939-axis`: the Axis side has no Elite army in
+    1939. Under a script the error's dialog waited on the hidden desktop until the run was killed, which
+    looked like a missing announcement (`TODO.md` said "no further wait is announced"). `play.py` now sets
+    `QB64PE_NOPROMPT=y`, so a runtime error ends the run at once.
+17. **The game builds and plays on Linux** (2026-11-07). Three changes made it so:
+    - **The data files have lower-case names** (`git mv`): `ww2.cfg`, everything in `graphics\`, `sound\`
+      and `scenarios\`, and the saved games and high scores in `tests\data\`. The code opens them by
+      lower-case names (`ww2.cfg`, `euro1939.dat`, `wwii1.sav`), and on Linux neither QB64Rust nor QB64pe
+      folds case. Measured with both Linux builds: `OPEN "abc.txt"` fails with error 53 when the file is
+      `ABC.TXT`, and `_FILES$("abc*.txt")` finds nothing. Menus that list files do not change, because
+      `DIR$` (`QB64.BM`) returns names in upper case, as DOS did.
+    - **The `$INCLUDE` lines name the source files as they are** (`'WW2.BI'`, `'WW2A.BM'`, and in
+      `tests\rules_test.bas` `'../WW2A.BM'`). The sources keep their upper-case names.
+    - **`scriptshell` turns a backslash into a slash** (`SCRIPT.BM`). The editor names its backups
+      `scenarios\ww1939.bak` for cmd's `copy`. On Linux a backslash is part of a file's name, so under a
+      script the copy found nothing.
+
+    `play.py` now writes `ww2.cfg` in lower case. With these changes all 49 scripts passed on Linux under
+    Xvfb (WSL, QB64Rust's Linux build), against the screens recorded on Windows. They also passed on
+    Windows as before. Outside a script the editor's backups and the PBM `.old` copy still need cmd's
+    `copy` (`TODO.md`). Items 19 and 20 fix the PBM drive menu and the Editor and PLAY GAME entries,
+    which also assumed DOS.
+18. **The editor's Save writes every army** (2026-11-07, the user's ruling). Save (`EDIT.BAS`) wrote slots
+    1 to `narmy(1)` and 31 to `30 + narmy(2)`, as if each side's armies were packed at the front. Remove
+    empties a slot and lowers the count, and the slot need not be the last. Then Save wrote the empty slot
+    and left out the last army. The Allied loop also skipped armies with a location of 0 or below, but it
+    had written the full count first. An Allied army placed with a 50% chance has a negative location, so
+    it was left out, and every line after it was read one army off. Save now counts each side's armies
+    with a location other than 0 and a size above 0, writes that count, then writes those armies in slot
+    order. Both faults are in the original. A third one was in the editor's loader: it ran
+    `armyloc(i) = ABS(armyloc(i))` on each Allied army, so a 50% chance was lost when the scenario was
+    loaded and saved again. The loader now keeps the negative location, as it already did for the Axis
+    armies. `edit-commands-1939` was recorded again. It now removes Berlin's Axis army (slot 32) and
+    Paris's Infantry 5, keeps an Allied army with a 50% chance, saves, loads the scenario back and saves
+    again. The saved `ww1939.ini` holds 6 Allied and 3 Axis armies, the army at Hannover among them. The
+    second Save backs up the first one, and each `.bak` has the same hash as the file saved after it.
+19. **The PBM drive off Windows is the game's folder** (2026-11-07, the user's ruling). The PBM Drive menu
+    offered `LEFT$(CURDIR$, 2)`, `A:` and `B:`. On Linux the first entry was `/h` or similar, and the PBM
+    file `/hpbm`. The shipped `ww2.cfg` holds `"C:"`, which made a file named `C:pbm` that Continue PBM
+    Game, which looks for `pbm`, never found. Off Windows the menu now offers only `./`, the game's own
+    folder (`pbmhere$`, `QB64.BM`), and a DOS drive read from `ww2.cfg` becomes `./` (`pbmdrive$`, called
+    by `filer`, `WW2B.BM`). On Windows nothing changes. `TestPbmDriveOnThisSystem` in
+    `tests\rules_test.bas` checks both functions on the system it runs on. No script shows the menu,
+    since its first entry differs from machine to machine.
+20. **The Editor and PLAY GAME entries run the builds by their names on each system** (2026-11-07). The
+    game's Editor entry ran `RUN "edit.exe"`, and the editor's PLAY GAME ran `RUN "ww2.exe"`. On Linux
+    the builds are `edit` and `ww2`, so neither name was found. Both entries now call `exename$`
+    (`QB64.BM`): `edit.exe` on Windows, `./edit` elsewhere. Off Windows `RUN` hands the name to the shell
+    (`system()` in libqb's `sub_run`), and the shell looks for a bare name on the PATH, not in the
+    current folder. Measured in WSL with QB64Rust's Linux build: `RUN "child"` printed
+    "sh: 1: child: not found" and ended, and `RUN "./child"` ran it. `onwindows%` there makes the choice for
+    `exename$`, `pbmhere$`, `pbmdrive$` and the size of the PBM Drive menu. No script plays either entry:
+    under a script `RUN` would end the program that the screen hook follows. `TestExeNameOnThisSystem` in
+    `tests\rules_test.bas` checks `exename$`.
 
 ## Kept as the original had it
 
@@ -218,11 +278,11 @@ See [TODO.md](../TODO.md).
   screen was compared at four points and is identical, pixel for pixel, in both builds.
 - `qb64rust test tests`: 20 tests pass. They cover `airdist`, `starfin`, `occupy`, `bubble`, `canimove` and
   `void`.
-- The 40 whole-game scripts (`tests\scripts\`) play every scenario as each side to the end, with one or two
-  players. Five of them go through the menus: `commands-1939-allied`, `menus-gosub-1939-allied`,
-  `mouse-1939-allied`, `orders-1939-axis` and `utility-1939-allied`. Both builds show the same screens at
-  every checkpoint, in two runs each (`play.py record`). With 38 scripts on 2026-11-05, they ran 81% of the
-  game's lines with a statement (`play.py coverage`).
+- The 49 scripts (`tests\scripts\`, two of them for the editor) play every scenario as each side to the
+  end, with one or two players, and go through the menus, the mouse, Paratroop and a play-by-mail game
+  (`tests\README.md`). Both builds show the same screens at every checkpoint, in two runs each
+  (`play.py record`). On 2026-11-07 they ran 88% of the game's lines with a statement and 78% of the
+  editor's (`play.py coverage`), and all 49 passed on Linux too (item 17).
 - QB64Rust 0.3.0 and QB64pe 4.7.0 both build `EDIT.BAS`. Both builds were played with the same timed keys,
   in a copy of this folder. The keys load 1939 by a letter at the Starting Year menu and open Technology.
   They then save the scenario back as 1939 and quit with `y`. Both builds exit with 0, and their screens are

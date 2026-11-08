@@ -1,0 +1,267 @@
+# The scenario editor's commands that edit-1939 does not play, written by hand. On the 1939
+# scenario, Allied side:
+#   - Army at Paris: Edit, the strength one step up and the type changed to Infantry; Place, a new
+#     army of the first type and nation, with a 50% chance of appearing; Rotate, the first army
+#     of the stack to the top; Remove, Yes, which removes Infantry 5;
+#   - Army at Berlin, which holds an Axis army: the editor asks to remove it first (Yes), then
+#     places an Allied army there (in slot 5, the first one free), of the first type and nation,
+#     always;
+#   - Navy, Move: to Cherbourg, the only city whose name starts with C;
+#   - Air Force (by the arrows, since A is Army): Move to Reims, then Edit, one plane more;
+#   - Cities: the first city, Amsterdam, given to the Axis side;
+#   - Capital (by the arrows, since C is Cities): Reims.
+# It then saves the scenario as 1939, loads it back, saves it again and quits. The run's saved
+# files are checked by their hashes. The save holds the two cases that the original Save got wrong
+# (docs/devnotes.md, item 18): an Axis slot emptied in the middle (Berlin's army, slot 32), and an
+# Allied army with a 50% chance, whose location is negative. All six Allied and three Axis armies
+# must be saved. The second Save first copies the first one to ww1939.bak and euro1939.bak, so
+# each .bak must have the same hash as the file saved after it: the load lost nothing, not even
+# the 50% chance, which the editor's loader once dropped.
+# Each city menu takes the first letter of a city, Up and Down for the city before or after, and
+# Enter.
+#! program edit
+#! files scenarios/WW1939.INI scenarios/WW1939.BAK scenarios/EURO1939.DAT scenarios/EURO1939.BAK
+
+# Starting Year: EURO1939.DAT.
+play until 2:S
+key enter
+
+# Army, Paris (by its letter): the menu of the city's army.
+play until 2:M
+digest
+text a
+play until 2:C
+text p
+play until 2:C
+digest
+key enter
+# Edit: Strength, one step up; Type, Infantry; then Esc.
+play until 2:P
+digest
+text e
+play until 2:U
+text s
+play until 7
+key up
+play until 7
+digest
+key enter
+play until 2:U
+text t
+play until 2:C
+digest
+key enter
+play until 2:U
+digest
+key esc
+
+# Army, Paris (where the city menu now starts): Place, the first type and nation, and 50%.
+play until 2:M
+text a
+play until 2:C
+key enter
+play until 2:P
+text p
+play until 2:U
+digest
+key enter
+play until 2:N
+digest
+key enter
+play until 2:C
+digest
+text 5
+
+# Army, Paris: Rotate, the first army of the stack (Infantry 5) to the top.
+play until 2:M
+digest
+text a
+play until 2:C
+key enter
+play until 2:P
+text r
+play until 2
+digest
+key enter
+
+# Army, Paris: Remove (the last entry), Yes. It removes Infantry 5, so slot 5 is empty and the army
+# with a 50% chance stays, in slot 6.
+play until 2:M
+digest
+text a
+play until 2:C
+key enter
+play until 2:P
+key pagedown
+prompt
+key enter
+play until 2:R
+digest
+text y
+
+# Army, Berlin (B is Belgrade, then Down): remove the Axis army, Yes; then place an Allied army.
+play until 2:M
+digest
+text a
+play until 2:C
+text b
+play until 2:C
+key down
+play until 2:C
+digest
+key enter
+play until 2:R
+digest
+text y
+play until 2:U
+digest
+key enter
+play until 2:N
+key enter
+play until 2:C
+key enter
+
+# Navy, Move: Cherbourg.
+play until 2:M
+digest
+text n
+play until 2:N
+text m
+play until 2:C
+text c
+play until 2:C
+digest
+key enter
+
+# Air Force, the fourth entry (PgUp, then Down three times): Move, Reims.
+play until 2:M
+digest
+key pageup
+prompt
+key down
+prompt
+key down
+prompt
+key down
+prompt
+key enter
+play until 2:A
+digest
+text m
+play until 2:C
+text r
+play until 2:C
+digest
+key enter
+# Air Force again: Edit, one plane more.
+play until 2:M
+digest
+key pageup
+prompt
+key down
+prompt
+key down
+prompt
+key down
+prompt
+key enter
+play until 2:A
+text e
+play until 7
+digest
+key up
+play until 7
+key enter
+
+# Cities: Amsterdam, the first city; the Axis side, the second entry.
+play until 2:M
+digest
+text c
+play until 2:C
+digest
+key enter
+play until 2:O
+digest
+key down
+prompt
+key enter
+
+# Capital, the eighth entry (PgUp, then Down seven times): Reims, the first city whose name starts
+# with R.
+play until 2:M
+digest
+key pageup
+prompt
+key down
+prompt
+key down
+prompt
+key down
+prompt
+key down
+prompt
+key down
+prompt
+key down
+prompt
+key down
+prompt
+key enter
+play until 2:C
+text r
+play until 2:C
+digest
+key enter
+
+# Save, the fourth entry from the end: as 1939, its month as it is, its description as it is.
+play until 2:M
+digest
+key pagedown
+prompt
+key up
+prompt
+key up
+prompt
+key up
+prompt
+key enter
+play until 2:S
+key enter
+play until 2:B
+key enter
+play until 4
+key enter
+
+# Load: 1939 again, now the saved scenario, with every army in its place.
+play until 2:M
+digest
+text l
+play until 2:S
+key enter
+
+# Save again, as before: the first save becomes the .bak files.
+play until 2:M
+digest
+key pagedown
+prompt
+key up
+prompt
+key up
+prompt
+key up
+prompt
+key enter
+play until 2:S
+key enter
+play until 2:B
+key enter
+play until 4
+key enter
+
+# Quit, then Yes by its letter, and a key for END's "Press any key to continue".
+play until 2:M
+digest
+text q
+play until 2:L
+text y
+repeat space

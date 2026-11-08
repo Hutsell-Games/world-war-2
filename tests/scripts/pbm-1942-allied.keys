@@ -1,0 +1,32 @@
+# A play-by-mail game, the Allied turn: the game starts with the PBM file that pbm-1942-axis wrote
+# (tests/data/pbm/1942-allied.pbm). Continue PBM Game shows the news of the Axis turn ("New Axis
+# Infantry recruited in Dresden"), then "CONTINUING PBM GAME", then plays the update of October
+# 1942 again, from the seed the file holds. The Allied side then plays November 1942: it ends its
+# turn at once. The game writes the PBM file for the Axis player, shows "PBM File has been saved"
+# and ends.
+#! seed 1942
+#! start pbm/1942-allied.pbm pbm
+#! files pbm
+
+rule 1 key space
+
+# The title menu: Continue PBM Game. The news, then "CONTINUING PBM GAME".
+play until 2:W
+digest
+text c
+play until 5
+digest
+key space
+play until 1
+digest
+key space
+
+# The update, then the Allied main menu: END TURN, Yes.
+play until 2:M
+digest
+text e
+play until 2:E
+text y
+play until 1
+digest
+repeat space

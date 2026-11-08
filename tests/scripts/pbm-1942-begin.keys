@@ -1,0 +1,65 @@
+# A play-by-mail game, first turn: the 1942 scenario, UTILITY, Begin PBM. The game becomes a
+# two-player game on the Allied side. Esc at the PBM Drive menu keeps the drive of ww2.cfg, which
+# is "" here, so the PBM file is "pbm" in the game's folder. The drive menu's first entry is
+# LEFT$(CURDIR$, 2), which differs from machine to machine, so no digest is taken while it shows.
+# The Allied side recruits twice in Birmingham, then ends its turn: the game writes the PBM file,
+# shows "PBM File has been saved" and ends. The file is the start of pbm-1942-axis
+# (tests/data/pbm/1942-axis.pbm).
+#! seed 1942
+#! files pbm
+
+rule 1 key space
+
+# The title menu: Start NEW Game. Start Year: 1942, the fourth entry.
+play until 2:W
+text s
+play until 2:S
+key down
+prompt
+key down
+prompt
+key down
+prompt
+key enter
+
+# UTILITY: Begin PBM is the fourth entry from the end (PgDn, then Up three times).
+play until 2:M
+digest
+text u
+prompt
+key pagedown
+prompt
+key up
+prompt
+key up
+prompt
+key up
+prompt
+digest
+key enter
+# The PBM Drive menu: Esc.
+prompt
+key esc
+
+# Recruit: Birmingham twice, then Esc.
+play until 2:M
+digest
+text r
+prompt
+digest
+key enter
+prompt
+key enter
+prompt
+digest
+key esc
+
+# END TURN, Yes: the PBM file is written, and the game ends at "press a key".
+play until 2:M
+digest
+text e
+play until 2:E
+text y
+play until 1
+digest
+repeat space

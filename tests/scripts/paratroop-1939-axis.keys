@@ -1,0 +1,36 @@
+# The 1939 scenario as the Axis side, written by hand: Paratroop with no army that can go. The Axis
+# side has no Elite army in 1939, so the game says "NO ELIGIBLE UNITS TO PARATROOP" and shows
+# COMMANDS again. This once stopped the game with "Subscript out of range" (docs/devnotes.md,
+# item 16). The message shows during a timed pause, which a script skips, so no digest sees it.
+# Then Esc, and Files, Quit, Yes.
+#! seed 1939
+#! cfg side=2
+
+rule 1 key space
+
+# The title menu: Start NEW Game. Start Year: 1939.
+play until 2:W
+text s
+play until 2:S
+key enter
+
+# COMMANDS, Paratroop, and COMMANDS again.
+play until 2:M
+text c
+play until 2:C
+digest
+text p
+play until 2:C
+digest
+key esc
+
+# Files, Quit, then Yes, and a key for END's "Press any key to continue".
+play until 2:M
+digest
+text f
+prompt
+text q
+prompt
+digest
+text y
+repeat space

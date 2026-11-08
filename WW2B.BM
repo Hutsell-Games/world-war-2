@@ -300,6 +300,7 @@ IF switch < 3 THEN
 	IF sblast$ = "M" THEN noise = 2
 	IF a > 0 THEN weather = 1
 	CLOSE #1
+	pb$ = pbmdrive$(pb$)
 END IF
 IF switch < 1 THEN EXIT SUB
 '...........................................................................

@@ -64,6 +64,36 @@ IF NOT root AND (RIGHT$(c$, 1) = CHR$(92) OR RIGHT$(c$, 1) = "/") THEN c$ = LEFT
 CURDIR$ = c$
 END FUNCTION
 
+' -1 on Windows, 0 elsewhere. DOS's drives and .EXE names exist only there.
+FUNCTION onwindows%
+onwindows% = INSTR(_OS$, "[WINDOWS]") > 0
+END FUNCTION
+
+' The name of one of the two programs (ww2 or edit) as RUN needs it: the
+' game's Editor entry runs the editor, and the editor's PLAY GAME runs the
+' game. The builds are ww2.exe and edit.exe on Windows, ww2 and edit
+' elsewhere. Off Windows RUN hands the name to the shell, which looks for a
+' bare name on the PATH, not in the game's folder: hence "./".
+FUNCTION exename$ (base$)
+IF onwindows% THEN exename$ = base$ + ".exe" ELSE exename$ = "./" + base$
+END FUNCTION
+
+' The first entry of the PBM Drive menu (WW2.BAS, pbmdrv): the drive the game
+' runs from, as DOS gave it (C:). Off Windows there are no drives, and
+' LEFT$(CURDIR$, 2) would be "/h", so the entry is the game's own folder.
+' The PBM file is pb$ + "pbm" in either case.
+FUNCTION pbmhere$
+IF onwindows% THEN pbmhere$ = LEFT$(CURDIR$, 2) ELSE pbmhere$ = "./"
+END FUNCTION
+
+' The PBM drive read from ww2.cfg. Off Windows a DOS drive (the shipped
+' ww2.cfg holds "C:") becomes the game's own folder: "C:pbm" would be a file
+' of that name, which Continue PBM Game, looking for "pbm", never finds.
+FUNCTION pbmdrive$ (d$)
+pbmdrive$ = d$
+IF NOT onwindows% AND MID$(d$, 2, 1) = ":" THEN pbmdrive$ = "./"
+END FUNCTION
+
 ' The DOS game played its sound files with DOS programs: plany.exe or
 ' sound.exe for a .VOC, playmidi.exe for a .MID. playsound plays them with
 ' QB64's own sound, and gives -1 if it played the file, 0 if the file is

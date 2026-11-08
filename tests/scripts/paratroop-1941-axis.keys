@@ -1,0 +1,74 @@
+# The 1941 scenario as the Axis side, written by hand: a paratroop drop. In June 1941, COMMANDS,
+# Paratroop: the From menu (Berlin and Krakow, the two cities with an Elite army the planes can
+# carry), Berlin, then the To menu, which shows one city at a time: Down to Bern, and Enter. The
+# drop ends at a "press a key" pause. Back at COMMANDS, the Paratroop row is blank. At the update of July
+# the force lands in Bern. Then END TURN every month to the end, the Hall of Fame, and Quit.
+#! seed 1941
+#! cfg side=2
+
+# Waits that any key ends; any menu not named below: Enter.
+rule 1 key space
+rule 2 key enter
+
+# The title menu: Start NEW Game. Start Year: 1941, the third entry.
+play until 2:W
+text s
+play until 2:S
+key down
+prompt
+key down
+prompt
+key enter
+
+# COMMANDS, Paratroop: the From menu.
+play until 2:M
+digest
+text c
+play until 2:C
+digest
+text p
+prompt
+digest
+# Berlin: its one Elite army goes straight to the To menu, which starts at Berlin.
+key enter
+prompt
+digest
+# Down: the next city in range, Bern. Enter: the drop.
+key down
+prompt
+digest
+key enter
+# The pause after the drop.
+prompt
+digest
+key space
+# COMMANDS again, with the Paratroop row blank: Esc to the main menu.
+play until 2:C
+digest
+key esc
+
+# END TURN. At the update the force lands in Bern.
+rule 2:E text y
+play until 2:M
+text e
+play until 2:M
+digest
+
+# END TURN every month to the end.
+rule 2:M text e
+text e
+play until 4
+text Tester
+key enter
+prompt
+digest
+key space
+prompt
+digest
+key space
+
+# Back at the title menu: Quit, and a key for END's "Press any key to continue".
+play until 2:W
+digest
+text q
+repeat space

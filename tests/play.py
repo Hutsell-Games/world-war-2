@@ -20,6 +20,8 @@ Lines of a script that start with "#!" set up its run (other "#" lines are comme
                              (EDIT.BAS, the scenario editor)
     #! files <name> ...      files of the run's folder to check after the run: each becomes a
                              last entry "file <name> <hash>" (or "file <name> missing")
+    #! start <file> <name>   a file of tests/data (a path with "/") that the run's folder holds
+                             as <name> when the game starts, such as a play-by-mail file
 
 Exit code: 0 when every script passed, 1 when one failed, 2 when a build or the set-up failed.
 """
@@ -185,6 +187,8 @@ class Script:
     timeout: int = DEFAULT_TIMEOUT
     program: str = "ww2"
     files: list[str] = field(default_factory=list)
+    # (file of tests/data, name in the run's folder), from "#! start" lines.
+    start: list[tuple[str, str]] = field(default_factory=list)
 
     @property
     def recorded(self) -> Path:
@@ -217,6 +221,10 @@ def load_script(keys: Path) -> Script:
             script.program = words[1]
         elif words[0] == "files" and len(words) > 1:
             script.files += words[1:]
+        elif words[0] == "start" and len(words) == 3:
+            if not (TEST_DATA / words[1]).is_file():
+                raise SetupError(f"{where}: no file {words[1]} in {rel(TEST_DATA)}")
+            script.start.append((words[1], words[2]))
         else:
             raise SetupError(f"{where}: not a set-up line: {line}")
     return script
@@ -363,10 +371,16 @@ class Run:
         return f"{self.script.name} [{self.compiler}{' ' + self.tag if self.tag else ''}]"
 
 
+# The files of a play-by-mail game (WW2.BAS): the PBM file, its copy, and the news of a turn.
+PBM_FILES = {"pbm", "pbm.old", "pbm.&&&"}
+
+
 def played_file(path: Path) -> bool:
-    """A saved game (*.SAV) or a high-score table (HI*.WW2), which playing writes."""
+    """A saved game (*.SAV), a high-score table (HI*.WW2) or a play-by-mail file, which playing
+    writes. A PBM file left in the repo's folder would make every run start at Continue PBM Game."""
     name = path.name.lower()
-    return name.endswith(".sav") or (name.startswith("hi") and name.endswith(".ww2"))
+    return (name.endswith(".sav") or (name.startswith("hi") and name.endswith(".ww2"))
+            or name in PBM_FILES)
 
 
 def copy_data(work: Path, game: Path = GAME, test_data: Path = TEST_DATA) -> None:
@@ -386,8 +400,9 @@ def copy_data(work: Path, game: Path = GAME, test_data: Path = TEST_DATA) -> Non
 
 
 def write_cfg(work: Path, cfg: dict[str, str]) -> None:
-    # The name is the game's own: on Windows it opens "ww2.cfg" whatever the case.
-    (work / "WW2.CFG").write_text(",".join(cfg[k] for k in CFG_FIELDS) + "\n")
+    # The name the game opens. The data files are in lower case, so that a system whose names
+    # differ by case (Linux) finds them.
+    (work / "ww2.cfg").write_text(",".join(cfg[k] for k in CFG_FIELDS) + "\n")
 
 
 def kill_tree(proc: subprocess.Popen) -> None:
@@ -407,6 +422,8 @@ def run_script(tools: Tools, exe: Path, script: Script, compiler: str, tag: str 
     shutil.rmtree(folder, ignore_errors=True)
     work.mkdir(parents=True)
     copy_data(work)
+    for source, name in script.start:
+        shutil.copy2(TEST_DATA / source, work / name)
     write_cfg(work, script.cfg)
     game = work / exe.name
     shutil.copy2(exe, game)
@@ -419,6 +436,9 @@ def run_script(tools: Tools, exe: Path, script: Script, compiler: str, tag: str 
         env["QB64_SCREEN_DIGEST_AS_STATE"] = "1"
     else:
         env.pop("QB64_SCREEN_DIGEST_AS_STATE", None)
+    # A runtime error ends the run (exit code 1 with QB64Rust, 0 with QB64pe). Without this it
+    # opens a dialog, which waits on the hidden desktop until the run's timeout.
+    env["QB64PE_NOPROMPT"] = "y"
     env.update(extra_env or {})
     if os.name == "nt":
         # END waits for a key event of the console; the helper gives it. The window goes on a

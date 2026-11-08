@@ -1,0 +1,97 @@
+# The mouse exits of menu (selex, WW2C.BM) that mouse-1939-allied does not play, written by hand.
+# With mighty=1 the main menu waits in Mickey (place 3), and these clicks and keys leave it:
+#   - line 1188: Paris clicked (its army is shown and ready to move), then a key: the main menu
+#     again;
+#   - line 1209: a click on the air force (the plane drawn above Paris, at 115, 118): the Planes
+#     menu;
+#   - line 1266: at Planes, AirBase (by its letter), then Metz clicked on the map: the air base
+#     moves to Metz;
+#   - line 1218: a click on the Allied navy (in London, at 136, 14): its menu, then a right click
+#     (Esc);
+#   - line 1362: two clicks on the side's flag beside the main menu (600, 150), which change the
+#     side. The first click is two rows above the menu and sets the row to -3; the second, with
+#     the row still -3 and x between 591 and 609, gives the game to the Axis side.
+# Line 1262, a city clicked for a paratroop drop, is in mouse-paratroop-1941-axis.
+# It then quits with keys, which Mickey also takes: Files, Quit, Yes.
+#! seed 1939
+#! cfg mighty=1
+
+# The pause before the title menu; Start NEW Game; Start Year 1939; the briefing.
+prompt
+mouse 100 100
+press 1
+release 1
+prompt
+mouse 60 263
+press 1
+release 1
+prompt
+mouse 165 199
+press 1
+release 1
+prompt
+press 2
+release 2
+
+# Paris (city 40, at 111, 127), then a key.
+prompt
+digest
+mouse 112 128
+press 1
+release 1
+prompt
+digest
+key space
+
+# The air force, then AirBase and Metz (city 33, at 176, 145), then a click for the message.
+prompt
+digest
+mouse 115 118
+press 1
+release 1
+prompt
+digest
+text a
+prompt
+digest
+mouse 176 145
+press 1
+release 1
+prompt
+digest
+press 1
+release 1
+
+# The navy, then a right click.
+prompt
+digest
+mouse 136 14
+press 1
+release 1
+prompt
+digest
+press 2
+release 2
+
+# The side's flag, twice: the Axis side's main menu.
+prompt
+digest
+mouse 600 150
+press 1
+release 1
+prompt
+digest
+mouse 600 150
+press 1
+release 1
+
+# Files, Quit, then Yes by its letter, and a key for END's "Press any key to continue".
+prompt
+digest
+text f
+prompt
+text q
+prompt
+digest
+text y
+repeat space

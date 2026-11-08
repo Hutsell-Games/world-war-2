@@ -8,38 +8,19 @@ Open work on the QB64 port (branch `qb64rust`). Remove an item when it is done.
   `SHELL` opens a console window on the user's desktop (`docs/devnotes.md`, item 13). So no test runs the
   editor's or the PBM update's `SHELL`. A test of them must run where a window does no harm: in QB64Rust's
   suites VM, or by hand.
-
-- **Run `tests/play.py` on Linux.** The script already has Linux branches (no console helper, a plain
-  kill), but they have never run. Two things stand in the way:
-  - File names differ in case. The game opens `ww2.cfg`, `euro1939.dat`, `wwii1.sav` and so on, and the
-    files are `WW2.CFG`, `EURO1939.DAT`, `WWII1.SAV`. The includes name `'ww2.bi'` and `'ww2a.bm'`, and the
-    files are `WW2.BI` and `WW2A.BM`. `DIR$("euro*.dat")` needs a match that ignores case. First find out
-    whether QB64Rust and QB64pe fold case on Linux. If they do not, rename the files to lower case, with
-    `git mv`.
-  - `write_cfg` in `play.py` writes `WW2.CFG` and relies on Windows opening it as `ww2.cfg`.
-  - The PBM drive is a DOS drive letter. The PBM Drive menu offers `LEFT$(CURDIR$, 2)`, `A:` and `B:`,
-    and the shipped `WW2.CFG` holds `"C:"`. The PBM file is then `C:pbm`. On Linux, `CURDIR$` starts
-    with `/`, so its first entry is `/h` or similar, and `C:pbm` is a file of that name. No script plays PBM.
-
-  Then run `play.py check` on Linux under Xvfb, as QB64Rust's own Linux steps do, and compare the screens
-  with the recordings made on Windows.
-- **Paratroop.** After its first wait, no further wait is announced. Find the wait that is missing an
-  `announce`, then add a script.
-- **Play by mail.** Begin PBM and the PBM news have no script.
+- **Run the Linux check again after changes.** `play.py check` passed all 49 scripts on Linux under Xvfb
+  on 2026-11-07 (WSL, QB64Rust's Linux build), against the screens recorded on Windows
+  (`docs/devnotes.md`, item 17). Nothing runs it on its own yet. It could be a job of
+  `.github/workflows/build.yml`, or a step run by hand before a merge.
 
 ## The game
 
+- **The editor's backups and the PBM `.old` copy on Linux.** Outside a script these run
+  `SHELL "copy ..."`, a Windows command, so on Linux no `.bak` and no `.old` file is made. `scriptshell`
+  could copy in BASIC on every system, not only under a script. That would also remove the console window
+  on Windows, but no test would then run the real `SHELL` at all.
 - **Separate the rules from the drawing** in the large SUBs (`battle`, `navy`, `airforce`, `tupdate`,
   `smarts`), one at a time. Run `play.py check` after each.
-- **The editor's other commands.** `edit-1939` covers Technology, Cash, Fortify, Navy Edit, Side, Save,
-  Load and Quit. Army (recruit, remove, rotate), Navy Move, Air Force, Cities and Capital have no script.
-- **Six mouse exits of `menu` have no script.** `selex` (`WW2C.BM`) leaves by the mouse in seven places,
-  which were rewritten to end by `RETURN` (`docs/devnotes.md`, item 12). `mouse-1939-allied` runs one: line
-  1372, a click on a menu entry. These six do not run: 1188 (a key while an army is shown), 1209 (a click on
-  the air force), 1218 (a click on the player's navy), 1262 and 1266 (a city clicked for a paratroop drop or a
-  bombing), and 1362, which changes the side. Line 1362 runs for a click outside the menu's rows with `xc`
-  591 to 609 (`Mickey` counts from 1), and only when `row1`, the row highlighted before the click, is -3. What sets `row1`
-  to -3 is not yet known; find it first. Add their clicks to `mouse-1939-allied` or to a second mouse script.
 - **The title and burning-city screens.** `ww2title.exe` and `ww2city.exe` were DOS programs with no
   source, so their `SHELL` lines are comments and the screens are missing. Pictures of both, taken in
   DOSBox, are `docs/WW2TITLE.png` and `docs/WW2CITY.png`. They could be drawn again in BASIC.

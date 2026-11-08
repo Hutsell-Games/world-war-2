@@ -1,6 +1,6 @@
 DEFINT A-Z
 DECLARE SUB center (y%, a$)
-REM $INCLUDE: 'edit.bi'
+REM $INCLUDE: 'EDIT.BI'
 DIM SHARED usai(80), uki(80), fri(80), poli(80), rusi(80), geri(80), alship(100)
 DIM SHARED para(60), axship(100), drop(140), ike1(80), ike2(80), ike3(80), ike4(80)
 DIM SHARED parasw, narmy(2), last
@@ -305,17 +305,23 @@ filex:
 			FOR j = 1 TO 2
 			WRITE #1, teklev(j, 1), teklev(j, 2), teklev(j, 3), teklev(j, 4), teklev(j, 5), teklev(j, 6), teklev(j, 7), teklev(j, 8)
 			NEXT j
-			WRITE #1, narmy(1)
-			FOR i = 1 TO narmy(1)
-			IF armyloc(i) > 0 THEN WRITE #1, nation(i), armyloc(i), unittype(i), armysize(i), armyexper(i), supply(i)
-			PRINT ".";
-			occupied(armyloc(i)) = i: armyname$(i) = country$(nation(i)) + " " + unitkind$(unittype((i)))
+			' QB64 port: each side's armies are counted, then written, wherever their
+			' slots are. Remove empties a slot that need not be the last (devnotes.md).
+			FOR k = 1 TO 2
+			CALL starfin(star, fin, k)
+			narmy(k) = 0
+			FOR i = star TO fin
+			IF armyloc(i) <> 0 AND armysize(i) > 0 THEN narmy(k) = narmy(k) + 1
 			NEXT i
-			WRITE #1, narmy(2)
-			FOR i = 31 TO 30 + narmy(2)
-			WRITE #1, nation(i), armyloc(i), unittype(i), armysize(i), armyexper(i), supply(i)
-			PRINT ".";
+			WRITE #1, narmy(k)
+			FOR i = star TO fin
+			IF armyloc(i) <> 0 AND armysize(i) > 0 THEN
+				WRITE #1, nation(i), armyloc(i), unittype(i), armysize(i), armyexper(i), supply(i)
+				PRINT ".";
+				IF k = 1 AND armyloc(i) > 0 THEN occupied(armyloc(i)) = i: armyname$(i) = country$(nation(i)) + " " + unitkind$(unittype((i)))
+			END IF
 			NEXT i
+			NEXT k
 WRITE #1, cash(1), cash(2)
 FOR i = 1 TO 2: WRITE #1, navysize(i), navyloc(i): NEXT i
 FOR i = 1 TO 2
@@ -344,7 +350,7 @@ NEXT i
 	IF choose <> 1 THEN CALL europe(0): GOTO menu0
 	CLS
 	PRINT "Loading game..."
-	RUN "ww2.exe"
+	RUN exename$("ww2")
 '==========================================================================
 '                            Quit
 '==========================================================================
@@ -760,9 +766,10 @@ redo:
 	INPUT #1, narmy(1)     ' number of allied armies
 FOR i = 1 TO narmy(1)
 	INPUT #1, nation(i), armyloc(i), unittype(i), armysize(i), armyexper(i), supply(i)
-	armyloc(i) = ABS(armyloc(i))
+	' QB64 port: a negative location (a 50% chance) is kept, as for the Axis
+	' armies below, so that a second Save keeps it (devnotes.md).
 	PRINT ".";
-	occupied(armyloc(i)) = i: armyname$(i) = country$(nation(i)) + " " + unitkind$(unittype((i)))
+	occupied(ABS(armyloc(i))) = i: armyname$(i) = country$(nation(i)) + " " + unitkind$(unittype((i)))
 	IF nation(i) = 2 OR nation(i) = 7 THEN nation(i) = 8
 NEXT i
 	INPUT #1, narmy(2)             ' number of axis armies
@@ -1657,5 +1664,5 @@ start! = TIMER
 DO WHILE TIMER - start! < sec! AND INKEY$ = "": LOOP
 END SUB
 
-'$INCLUDE: 'qb64.bm'
-'$INCLUDE: 'script.bm'
+'$INCLUDE: 'QB64.BM'
+'$INCLUDE: 'SCRIPT.BM'

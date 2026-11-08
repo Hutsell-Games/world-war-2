@@ -14,3 +14,8 @@ HI*.WW2
 # The saved games and high scores that came with the game, which every test run starts with
 # (tests/play.py, TEST_DATA).
 !tests/data/*
+
+# A play-by-mail game: the PBM file, its copy and the news of a turn (WW2.BAS).
+/pbm
+/pbm.old
+/pbm.&&&

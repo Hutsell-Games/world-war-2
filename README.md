@@ -29,10 +29,10 @@ Actions, Build, Run workflow): the run's artifact `world-war-2` holds
 them with the data files, ready to play.
 
 Run the program from this folder. It reads its pictures and help screens from `graphics`, its
-sounds from `sound` and its scenarios from `scenarios`. Its settings (`WW2.CFG`), saved games and
+sounds from `sound` and its scenarios from `scenarios`. Its settings (`ww2.cfg`), saved games and
 high scores stay beside the program. With no option the
-game beeps. `ww2 S` plays the sound effects (the `.VOC` files), and `ww2 M` plays the
-music (the `.MID` files) as well.
+game beeps. `ww2 S` plays the sound effects (the `.voc` files), and `ww2 M` plays the
+music (the `.mid` files) as well.
 
 The tests are described in [tests/README.md](tests/README.md). Work still to do is in [TODO.md](TODO.md).
 
