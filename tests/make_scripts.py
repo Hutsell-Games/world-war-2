@@ -30,6 +30,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import play  # noqa: E402
 
 YEARS = range(1939, 1946)
+# Recruit at a city with no army, when every army of the side has a commander, says so and shows
+# the Recruit menu again; Enter there would choose the same city for ever. Space ends the message,
+# and Esc then leaves the Recruit menu.
+NO_COMMANDER = "rule 1:N key space key esc"
 SIDES = {1: ("allied", "Allied", "Axis"), 2: ("axis", "Axis", "Allied")}
 STYLES = {
     "endturn": {
@@ -39,12 +43,12 @@ STYLES = {
     },
     "enter": {
         "main": "key enter",
-        "rules": ["rule 2 key enter"],
+        "rules": ["rule 2 key enter", NO_COMMANDER],
         "about": "played by Enter at every menu (the command each menu highlights); the computer plays",
     },
     "twoplayer": {
         "main": "key enter",
-        "rules": ["rule 2 key enter"],
+        "rules": ["rule 2 key enter", NO_COMMANDER],
         "about": "with two players, each played by Enter at every menu (the command each menu highlights)",
         "players": 2,
     },
@@ -72,7 +76,8 @@ def header(style: str, year: int, side: int, menus: int | None) -> list[str]:
         *([] if menus else ["#! timeout 120"]),
         "",
         "# Waits that any key ends; End Turn and End Game: Yes" +
-        ("; a Retreat menu: its first city." if style == "endturn" else "; any other menu: Enter."),
+        ("; a Retreat menu: its first city." if style == "endturn" else
+         "; any other menu: Enter.\n# No commander free at Recruit: Space, then Esc."),
         "rule 1 key space",
         *STYLES[style]["rules"],
         "rule 2:E text y",

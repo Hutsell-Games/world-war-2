@@ -972,7 +972,11 @@ auto1:
 	CALL commander((who), empty)
 	   
 	IF who <> side AND empty = 0 GOTO menu1
-	IF empty = 0 GOTO levy
+	IF empty = 0 THEN
+		CALL clrbot: COLOR 14: PRINT "All "; force$(who); " army slots are used!"; : SOUND 150, .3
+		CALL keypause("N")
+		GOTO levy
+	END IF
 
 	nation(empty) = 0
 	CALL newarmy(who, empty, target)

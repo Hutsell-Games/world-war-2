@@ -1109,6 +1109,14 @@ start! = TIMER
 DO WHILE TIMER - start! < sec! AND INKEY$ = "": LOOP
 END SUB
 
+SUB keypause (letter$)
+' A pause that any key ends, as TICK -2, announced with a letter so that a script can tell it
+' from the other pauses.
+IF Mighty > 0 THEN CALL Mickey(a$, lButton, rButton, xc, yc): EXIT SUB
+CALL announce(1, letter$)
+DO WHILE INKEY$ = "": LOOP
+END SUB
+
 SUB title2
 ' SHELL "ww2title.exe" (a DOS program with no source; cannot run on 64-bit Windows)
 SCREEN 12

@@ -34,7 +34,7 @@ reach it. Everything a run makes goes into `tests\out\`, which git ignores. A bu
 source file, the compiler or the screen hook changed. What a command prints also goes to
 `tests\out\last-<command>.txt`.
 
-A whole `check` of the 40 scripts takes about 35 seconds with `--jobs 6`. `record` of all of them takes a few
+A whole `check` of the 41 scripts takes about 50 seconds with `--jobs 4`. `record` of all of them takes a few
 minutes, because each script runs five times.
 
 ### When a check fails
@@ -77,7 +77,7 @@ The places a script can name (`play until <place>[:<letter>]`, `rule <place>[:<l
 
 | Place | Wait | Where |
 |---|---|---|
-| 1 | A pause that any key ends ("press a key", `TICK` of 0 or less) | `TICK`, `WW2B.BM` |
+| 1 | A pause that any key ends ("press a key", `TICK` of 0 or less). The letter `N` is the message at Recruit that all army slots are used; other pauses have no letter | `TICK` and `keypause`, `WW2B.BM` |
 | 2 | A menu. The letter is the first letter of the menu's title | `menu`, `WW2C.BM` |
 | 3 | A key or a mouse button, with no letter. With `mighty=1` the "press a key" pauses and most menus wait here (below) | `Mickey`, `QB64.BM` |
 | 4 | A line of text: the commander's name for the Hall of Fame (an `INPUT`); in the editor, the scenario's description | `maxx`, `WW2B.BM`; `Enput`, `EDIT.BAS` |
@@ -155,8 +155,8 @@ fails, and the last line of its state file says why.
 
 ### Generated scripts
 
-`make_scripts.py` writes 34 scripts: each of the seven scenarios (1939 to 1945), as each side, in two styles,
-and each scenario but 1944 with two players.
+`make_scripts.py` writes 35 scripts: each of the seven scenarios (1939 to 1945), as each side, in two styles,
+and each scenario with two players.
 
 | Script | How the player plays |
 |---|---|
@@ -169,8 +169,10 @@ Enter is stuck, depends on the game. So `make_scripts.py` first plays each game 
 they found. Run it again only when a change is meant to change how the games go, then `record`. It takes about
 15 minutes, because a probe that finds a stuck main menu plays the game again from the start.
 
-`twoplayer-1944` is not written: in October 1948 Enter at a Recruit menu brings the same menu back for ever, and
-the probes only get unstuck at the main menu. `make_scripts.py` reports it and goes on.
+When every army of a side is in use, Recruit at a city with no army says "All Allied army slots are used!" and shows
+the Recruit menu again. Enter there would choose the same city for ever. So the `enter` and `twoplayer` scripts
+answer that message (`1:N`) with Space, then Esc, which leaves Recruit. `twoplayer-1944` reaches it in August
+1948 (`docs/devnotes.md`, item 15).
 
 ### Scripts written by hand
 

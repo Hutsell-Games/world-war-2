@@ -180,6 +180,32 @@ and `EDIT.EXE` are removed from this branch, because the builds take their names
     port, whose battles each end in such a copy. `edit-1939` gives the same screens and the same `.bak`
     hashes as before, and a watch of new processes during it saw no `cmd.exe`. No script runs the real
     `SHELL` now (`TODO.md`).
+14. **The editor's Navy, Edit no longer moves the navy** (2026-11-07, the user's ruling). `CASE 3` of
+    `EDIT.BAS` set `navyloc(side) = target` after the `IF` that builds a new navy. For a navy that already
+    existed, `target` was whatever city the last command had picked. So changing the size of a navy also
+    moved it there. The line is gone. A new navy still goes to the city picked for it, inside the `IF`.
+    `edit-1939` was recorded again: after Fortify at Belgrade, Navy, Edit now leaves the Allied navy at
+    London. Its first 15 checkpoints are unchanged. Checkpoints 16 to 18, after the scenario is loaded again,
+    and the hash of the saved `WW1939.INI` changed.
+15. **Recruit says when all army slots are used** (2026-11-07, the user's ruling). Each side has 30 armies
+    (`starfin`). When all 30 are in use and the player recruits at a city with no army, `commander` finds no
+    free one. The original went back to the Recruit menu without a word, so the pick seemed to do nothing.
+    The computer's side already left Recruit in that case. Now `recruit` (`WW2A.BM`) shows "All Allied army
+    slots are used!" in yellow with a low tone and waits for a key, then shows the Recruit menu again as
+    before. The message, color and tone are the author's own, from the editor's `recruit` (`EDIT.BAS`), which
+    leaves Recruit after a 2-second pause. The game keeps the menu, since a city that has an army can still
+    be reinforced. The wait is `keypause` (`WW2B.BM`). It is the pause of `TICK -2`, but it announces place 1 with the
+    letter `N`, so that a script can answer it apart from the other pauses. Found by the two-player 1944
+    game, whose Allies run out of commanders in August 1948. Enter at every menu chose the same city for
+    ever, so `twoplayer-1944` could not be written (`tests/README.md`, "Generated scripts").
+
+## Kept as the original had it
+
+- **Battle losses are drawn high** (2026-11-07, the user's ruling: keep it as DOS players knew it). `normal`
+  (`WW2B.BM`) sums 12 RNDs and subtracts 5.5, but the sum averages 6. So each draw centers on
+  `xbar + SQR(vary) / 2`, not on `xbar`. `battle` (`WW2A.BM`) uses it for both sides' losses, so every
+  battle costs both sides more than its `xbar` says. `TestNormalStaysInRange` in `tests\rules_test.bas`
+  checks the range the game gets.
 
 ## Not done yet
 
@@ -192,10 +218,11 @@ See [TODO.md](../TODO.md).
   screen was compared at four points and is identical, pixel for pixel, in both builds.
 - `qb64rust test tests`: 20 tests pass. They cover `airdist`, `starfin`, `occupy`, `bubble`, `canimove` and
   `void`.
-- The 38 whole-game scripts (`tests\scripts\`) play every scenario as each side to the end, with one or two
-  players, and four of them go through most of the menus. Both builds show the same screens at every
-  checkpoint, in two runs each (`play.py record`). The scripts run 81% of the game's lines with a statement
-  (`play.py coverage`).
+- The 40 whole-game scripts (`tests\scripts\`) play every scenario as each side to the end, with one or two
+  players. Five of them go through the menus: `commands-1939-allied`, `menus-gosub-1939-allied`,
+  `mouse-1939-allied`, `orders-1939-axis` and `utility-1939-allied`. Both builds show the same screens at
+  every checkpoint, in two runs each (`play.py record`). With 38 scripts on 2026-11-05, they ran 81% of the
+  game's lines with a statement (`play.py coverage`).
 - QB64Rust 0.3.0 and QB64pe 4.7.0 both build `EDIT.BAS`. Both builds were played with the same timed keys,
   in a copy of this folder. The keys load 1939 by a letter at the Starting Year menu and open Technology.
   They then save the scenario back as 1939 and quit with `y`. Both builds exit with 0, and their screens are
@@ -230,3 +257,11 @@ See [TODO.md](../TODO.md).
     `verification\v17_d_gosub_left_in_sub` now tests this, so a later change to QB64Rust's stack would show.
 
   The editor depended on the PDS result (item 11 above).
+- **A rare crash at exit came from QB64Rust's test hook, not from the game or the runtime** (2026-11-07).
+  `endturn-1943-allied` sometimes ended with exit code 0xC0000005 (an access violation), after all its
+  checkpoints and its last state were written. It crashed in 1 or 2 runs in 40 at `--jobs 4`. Under `cdb`, the
+  stacks showed two threads at once. The main thread was in `exit()`, destroying libqb's static objects. The
+  hook's key thread, still pressing Space for the script's last line `repeat space`, was in
+  `keyboard_keydown`, writing into libqb's `keyhit_buffer` after its storage was freed. A real program
+  gets its keys on the main thread, so it cannot hit this. QB64Rust's `tools\screen\screen_state.cpp` now
+  stops giving keys once the program begins to exit. After the fix, 200 runs of 200 passed.

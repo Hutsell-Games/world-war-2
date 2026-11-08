@@ -5,8 +5,10 @@
 #! cfg side=1
 
 # Waits that any key ends; End Turn and End Game: Yes; any other menu: Enter.
+# No commander free at Recruit: Space, then Esc.
 rule 1 key space
 rule 2 key enter
+rule 1:N key space key esc
 rule 2:E text y
 
 # The title menu: Start NEW Game. Start Year: the scenario's entry.
@@ -34,8 +36,8 @@ digest
 key enter
 end
 
-# The game is over: the Hall of Fame asks for the commander's name. No digest while INPUT
-# waits: its cursor blinks by the clock. A digest at the pause after the name, and at the table
+# The game is over: the Hall of Fame asks for each player's commander. No digest while INPUT
+# waits: its cursor blinks by the clock. A digest at the pause after the names, and at the table
 # of new high scores.
 play until 4
 text Tester

@@ -128,7 +128,6 @@ SELECT CASE choose
 			navysize(side) = 1
 			CALL ships
 			END IF
-			navyloc(side) = target
 			CALL plusminus(force$(side) + " Navy", navysize(side), 0, 10)
 			IF navysize(side) = 0 THEN navyloc(side) = 0: CALL europe(0)
 	END SELECT

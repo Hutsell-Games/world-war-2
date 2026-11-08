@@ -36,8 +36,8 @@ digest
 text e
 end
 
-# The game is over: the Hall of Fame asks for the commander's name. No digest while INPUT
-# waits: its cursor blinks by the clock. A digest at the pause after the name, and at the table
+# The game is over: the Hall of Fame asks for each player's commander. No digest while INPUT
+# waits: its cursor blinks by the clock. A digest at the pause after the names, and at the table
 # of new high scores.
 play until 4
 text Tester
